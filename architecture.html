@@ -18,7 +18,16 @@ body{margin:0;font-family:Mulish,-apple-system,sans-serif;background:var(--bg);c
 .scbtn{font-size:13px;font-weight:700;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
 .scbtn.on{background:linear-gradient(135deg,var(--green),var(--teal));color:#fff;border:none}
 .theme{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--slate)}
-.wrap{padding:20px 26px 40px;max-width:1360px;margin:0 auto}
+.wrap{padding:20px 26px 40px;max-width:1600px;margin:0 auto}
+.ex-toggle{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface);cursor:pointer;user-select:none;font-size:12px;font-weight:600;color:var(--muted);transition:border-color .15s}
+.ex-toggle:hover{border-color:var(--green)}
+.ex-toggle .sw{position:relative;flex:0 0 auto;width:30px;height:16px;border-radius:9px;background:var(--line);transition:background .2s}
+.ex-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+html.explain .ex-toggle .sw{background:var(--green)}
+html.explain .ex-toggle .sw::after{transform:translateX(14px)}
+html.explain .scbtn,html.explain .chip,html.explain .node,html.explain [data-scene]{cursor:help}
+.tipbox{position:fixed;z-index:9999;max-width:300px;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.45;font-weight:500;padding:9px 11px;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.28);pointer-events:none;display:none;opacity:0;transform:translateY(3px);transition:opacity .14s,transform .14s}
+.tipbox.on{opacity:1;transform:translateY(0)}
 .flows{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .chip{font-size:13px;font-weight:700;padding:8px 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--slate);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
 .chip .cd{width:9px;height:9px;border-radius:50%;background:var(--faint)}
@@ -73,6 +82,7 @@ svg{width:100%;height:auto;display:block}
   <div class="brand"><div class="logo">U</div><div><div class="title">Knowledge Graph — Architecture</div><div class="subtitle">how it's built · how an agent grounds · UOS</div></div></div>
   <div class="spacer"></div>
   <div class="scenes"><button class="scbtn on" data-scene="arch">Architecture</button><button class="scbtn" data-scene="model">Data model</button></div>
+  <div class="ex-toggle" id="exToggle" role="button" tabindex="0" title="Turn plain-language explanations on or off"><span class="sw"></span><span>Explain</span></div>
   <button class="theme" id="theme">◐</button>
 </div>
 <div class="wrap">
@@ -252,5 +262,36 @@ function setFlow(f){
 }
 chips.forEach(function(c){c.addEventListener('click',function(){setFlow(c.dataset.flow);});});
 document.getElementById('theme').addEventListener('click',function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('kg-theme',d?'dark':'light');}catch(e){}});
+(function(){
+ var EX=document.getElementById('exToggle');
+ try{if(localStorage.getItem('kg-explain')!=='off')document.documentElement.classList.add('explain');}catch(e){}
+ function setEx(){var on=document.documentElement.classList.toggle('explain');if(!on)hide();try{localStorage.setItem('kg-explain',on?'on':'off');}catch(e){}}
+ if(EX){EX.addEventListener('click',setEx);EX.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setEx();}});}
+ var SCENE={arch:"The system diagram — how the institution's knowledge is built, served, bridged to real accounts, and governed.",model:"The data model — the 16 object types the knowledge graph is built from."};
+ var FLOW={all:"Show the whole system at once.",build:"The path that turns documents into approved facts: capture, validate, then a person signs off.",serve:"How a live question gets answered: the agent asks, the graph returns the right slice, the answer comes back grounded.",bridge:"How the general knowledge links to a specific member's real accounts at the moment a question is asked.",govern:"The oversight layer — who may act, how each action is checked, and what gets logged — applied to every agent."};
+ var NODE={cf:"Control Framework — the oversight layer that governs every agent, whatever vendor built it: who may act, how actions are checked, and what gets logged.",qore:"The QORE platform — the engine it all runs on: build, run, govern, the AI-model gateway, and a single-tenant runtime.",src_pub:"Public sources — the institution's website, rate sheets, fees, and disclosures.",src_fi:"The institution's own documents and systems — policies, authorities, and core/CRM data.",cap:"Capture — reads each source and places what it finds into the graph.",val:"Validate — checks captured facts for structure and basic sense before they're trusted.",kg:"Knowledge Graph — the institution's general knowledge: 16 object types, one shared schema, per institution.",ig:"Instance Graph — the real members and accounts, held in a graph database and used at run time.",fi:"Sign-off — a person at the institution approves facts, moving them from assumed to ratified before any agent can use them.",rc:"Retrieval — pulls the exact slice of the graph an agent needs to answer a given question.",ag:"Agent Graph — the agents themselves, each grounded in the graph and governed by the control framework.",ans:"The grounded answer the agent returns — with its citation and provenance attached."};
+ function tipFor(el){
+  var s=el.closest('[data-scene]');if(s)return SCENE[s.dataset.scene];
+  var f=el.closest('[data-flow]');if(f)return FLOW[f.dataset.flow];
+  var n=el.closest('[data-k]');if(n)return NODE[n.dataset.k];
+  return null;
+ }
+ var box=null,ht=null;
+ function ensure(){if(!box){box=document.createElement('div');box.className='tipbox';document.body.appendChild(box);}return box;}
+ function hide(){if(box){box.classList.remove('on');ht=setTimeout(function(){if(box)box.style.display='none';},150);}}
+ function show(el){
+  if(!document.documentElement.classList.contains('explain'))return;
+  var tip=tipFor(el);if(!tip)return;
+  clearTimeout(ht);var b=ensure();b.textContent=tip;b.style.display='block';
+  var r=el.getBoundingClientRect(),bw=b.offsetWidth,bh=b.offsetHeight;
+  var top=r.top-bh-10;if(top<8)top=r.bottom+10;
+  var left=r.left+r.width/2-bw/2;left=Math.max(10,Math.min(left,window.innerWidth-bw-10));
+  b.style.left=left+'px';b.style.top=top+'px';
+  requestAnimationFrame(function(){b.classList.add('on');});
+ }
+ var SEL='.scbtn,[data-scene],.chip,[data-flow],.node,[data-k]';
+ document.addEventListener('mouseover',function(e){var el=e.target.closest(SEL);if(el)show(el);});
+ document.addEventListener('mouseout',function(e){var el=e.target.closest(SEL);if(el)hide();});
+})();
 </script>
 </body></html>

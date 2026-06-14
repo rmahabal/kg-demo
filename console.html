@@ -35,7 +35,17 @@ html.dark .nav a.active{color:var(--green)}
 .pill.draft{color:var(--amber);background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.25)}
 .icon-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--slate)}
 .icon-btn:hover{background:var(--surface-2)}
-.content{padding:24px 26px 48px;max-width:1240px}
+.content{padding:24px 26px 48px;max-width:1600px;margin:0 auto}
+html.wide .content{max-width:none}
+@media(min-width:1500px){.layout{grid-template-columns:1fr 320px}.explorer-grid{grid-template-columns:1fr 300px}}
+.lay-toggle{display:flex;align-items:center;gap:9px;margin:0 6px 6px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;user-select:none;font-size:11px;color:var(--muted);transition:border-color .15s}
+.lay-toggle:hover{border-color:var(--green)}
+.lay-toggle .sw{position:relative;flex:0 0 auto;width:30px;height:16px;border-radius:9px;background:var(--border);transition:background .2s}
+.lay-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+html.wide .lay-toggle .sw{background:var(--green)}
+html.wide .lay-toggle .sw::after{transform:translateX(14px)}
+.lay-toggle .lt-tx b{color:var(--ink);font-weight:600}
+@media(max-width:1080px){.lay-toggle{display:none}}
 .view{display:none;animation:fade .22s ease}
 .view.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -350,6 +360,7 @@ html.dark .toast{background:var(--green);color:#06140e}
       <a data-view="settings"><span class="ic">⚙</span> Settings</a>
     </nav>
     <div class="foot">UOS Console · KG module<br/>v1.2 · build 2026-06-12</div>
+    <div class="lay-toggle" id="layToggle" role="button" tabindex="0" title="Switch between a comfortable fixed width and using the full screen width"><span class="sw"></span><span class="lt-tx"><b>Fit to screen</b></span></div>
   </aside>
 
   <div class="main">
@@ -754,6 +765,7 @@ links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefaul
 document.querySelectorAll('[data-go]').forEach(function(el){el.style.cursor='pointer';el.addEventListener('click',function(){go(el.dataset.go);});});
 var h=(location.hash||'').replace('#','');if(h&&document.getElementById('view-'+h))go(h);
 document.getElementById('theme').addEventListener('click',function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('kg-theme',d?'dark':'light');}catch(e){}});
+(function(){var lt=document.getElementById('layToggle');if(!lt)return;try{if(localStorage.getItem('kg-layout')==='wide')document.documentElement.classList.add('wide');}catch(e){}function set(){var w=document.documentElement.classList.toggle('wide');try{localStorage.setItem('kg-layout',w?'wide':'fit');}catch(e){}}lt.addEventListener('click',set);lt.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();set();}});})();
 
 // --- explorer tabs ---
 (function(){

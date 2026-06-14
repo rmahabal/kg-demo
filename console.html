@@ -866,7 +866,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
   el.innerHTML=path.map(function(id,idx){return '<span class="crumb'+(idx===path.length-1?' cur':'')+'" data-idx="'+idx+'">'+esc(trim(G.nodes[id].name,16))+'</span>'+(idx===path.length-1?'':'<span class="crumb-sep">\u203a</span>');}).join('');
   el.querySelectorAll('.crumb').forEach(function(c){c.addEventListener('click',function(){var idx=+c.dataset.idx;if(idx>=crumbs.length)return;center=crumbs[idx];crumbs=crumbs.slice(0,idx);render();});});}
  function detail(id){var nd=G.nodes[id],rp=document.getElementById('gdetail');
-  rp.innerHTML='<div class="dt">Selected node</div><div class="dn">'+esc(nd.name)+'</div><div class="dk" style="color:'+(KCOLOR[nd.k]||'var(--muted)')+'">'+esc(nd.kl)+'</div><div style="margin-top:12px"><div class="drow"><span class="k">Connections</span><span class="v">'+deg(id)+'</span></div><div class="drow"><span class="k">Provenance</span><span class="v">'+esc(nd.src||'\u2014')+'</span></div><div class="drow"><span class="k">State</span><span class="v" style="color:'+(nd.nf?'var(--amber)':'var(--muted)')+'">'+(nd.nf?'NEEDS_FI':'default-unconfirmed')+'</span></div></div><button class="cta full" onclick="window.__hubCenter(\''+id+'\')">Center on this node \u2192</button><div class="note" style="margin-top:12px">Click any ring node to walk. Clusters open as a list.</div>';}
+  rp.innerHTML='<div class="dt">Selected node</div><div class="dn">'+esc(nd.name)+'</div><div class="dk" style="color:'+(KCOLOR[nd.k]||'var(--muted)')+'">'+esc(nd.kl)+'</div><div style="margin-top:12px"><div class="drow"><span class="k">Connections</span><span class="v">'+deg(id)+'</span></div><div class="drow"><span class="k">Provenance</span><span class="v">'+esc(nd.src||'\u2014')+'</span></div><div class="drow"><span class="k">State</span><span class="v" style="color:'+(nd.nf?'var(--amber)':'var(--muted)')+'">'+(nd.nf?'NEEDS_FI':'default-unconfirmed')+'</span></div></div><button class="cta full" onclick="window.__hubCenter(\''+id+'\')">Center on this node \u2192</button><button class="cta ghost full" style="margin-top:8px" onclick="window.__viewProv&&window.__viewProv(\''+id+'\')">View provenance \u2192</button><div class="note" style="margin-top:12px">Click any ring node to walk. Clusters open as a list.</div>';}
  function openList(it){var rp=document.getElementById('gdetail');
   var rows=it.members.map(function(m){return '<div class="mrow" data-id="'+m.node.id+'"><span class="md" style="background:'+(KCOLOR[it.k]||'var(--muted)')+'"></span><span class="mn">'+esc(trim(m.node.name,24))+'</span>'+(m.node.nf?'<span style="color:var(--amber);font-weight:800">!</span>':'')+'</div>';}).join('');
   rp.innerHTML='<div class="dt">'+esc(KLABEL[it.k])+' cluster</div><div class="dn">'+it.members.length+' nodes</div><div class="note" style="margin-top:6px">Connected to <b>'+esc(trim(G.nodes[center].name,20))+'</b>. Pick one to center.</div><div class="mlist">'+rows+'</div>';
@@ -1001,33 +1001,47 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
   function provenance(){
     var view=$('#view-provenance');if(!view)return;
     var chain=$('.chain',view);if(!chain)return;
-    var cns=$all('.cn',chain);
+    if(!document.getElementById('pv-css')){var s=document.createElement('style');s.id='pv-css';s.textContent='.pv-pick{display:flex;align-items:center;gap:8px;margin:0 0 14px}.pv-pick input{flex:1;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px}.pv-pick input:focus{outline:none;border-color:var(--green)}';document.head.appendChild(s);}
+    var kv=$('.kv',view),head=$('.sec-h',view);
+    var title=head?head.querySelector('h3'):null,hint=head?head.querySelector('.hint'):null;
     var detail=document.createElement('div');detail.className='pv-detail';detail.style.display='none';
     chain.parentNode.insertBefore(detail,chain.nextSibling);
-    var texts=[
-      '<b>Source.</b> Consumer Ratesheet (PDF), published 02 Mar 2026 on ccu.com — the original document this fact was read from.',
-      '<b>Extracted field.</b> The exact text the system pulled: “0.05% APY on balances $100+”, daily balance, compounded monthly.',
-      '<b>Graph node.</b> Stored as a Pricing node (version 0.9) at 0.85 confidence — placed automatically, not yet approved by a person.',
-      '<b>Status.</b> default-unconfirmed: the system assumed this value. A person at the institution must sign it off before any agent is allowed to quote it.<br/><button class="cta" id="pv-go-signoff">Go to Sign-off →</button>'
-    ];
-    cns.forEach(function(cn,i){cn.addEventListener('click',function(){cns.forEach(function(x){x.classList.remove('on');});cn.classList.add('on');detail.style.display='block';detail.innerHTML=texts[i]||'';var g=$('#pv-go-signoff');if(g)g.addEventListener('click',function(){goView('signoff');});});});
-    $all('.row-list .lrow',view).forEach(function(r){r.addEventListener('click',function(){var t=r.querySelector('.lt')?r.querySelector('.lt').textContent:'source';var mm=r.querySelector('.lm')?r.querySelector('.lm').textContent:'';toast(t+' — '+mm);});});
-    var head=$('.sec-h',view);
-    if(head){
-      var bar=document.createElement('span');bar.className='bt-bar';
-      bar.innerHTML='Agent read graph: <span class="bt-seg"><button data-v="11">v1.1</button><button data-v="12" class="on">v1.2</button></span> <span style="opacity:.6;font-style:italic">illustrative</span>';
-      head.appendChild(bar);
-      var ext=cns[1]?cns[1].querySelector('.cv'):null,nodev=cns[2]?cns[2].querySelector('.cv'):null,asof=null;
-      $all('.kv .i',view).forEach(function(i){if(i.querySelector('.l')&&i.querySelector('.l').textContent==='As-of (graph version)')asof=i.querySelector('.v');});
-      var cap=document.createElement('div');cap.className='note';cap.style.marginTop='10px';cap.style.display='none';
-      var note=$('.note',view);if(note)note.parentNode.insertBefore(cap,note);
-      function setV(v){
-        bar.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
-        if(v==='11'){if(ext)ext.textContent='"0.03% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.7';if(asof)asof.textContent='v1.1 · 2026-05-20';cap.style.display='block';cap.innerHTML='<b>Illustrative example</b> (sample figures, not from this instance). On v1.1 the agent would have quoted <b>0.03%</b>. The 0.05% rate took effect 02 Mar 2026 but was not ratified into the graph until v1.2 — bitemporal tracking is what makes “which rate did the agent quote, and was it current?” answerable.';}
-        else{if(ext)ext.textContent='"0.05% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.9';if(asof)asof.textContent='v1.2 · 2026-06-12';cap.style.display='none';}
-      }
-      bar.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){setV(b.dataset.v);});});
+    var pick=document.createElement('div');pick.className='pv-pick';
+    pick.innerHTML='<span>🔎</span><input id="pv-search" list="pv-list" placeholder="Trace any fact — type a name…" autocomplete="off"/><datalist id="pv-list"></datalist>';
+    chain.parentNode.insertBefore(pick,chain);
+    var bar=document.createElement('span');bar.className='bt-bar';
+    bar.innerHTML='Agent read graph: <span class="bt-seg"><button data-v="11">v1.1</button><button data-v="12" class="on">v1.2</button></span> <span style="opacity:.6;font-style:italic">illustrative</span>';
+    if(head)head.appendChild(bar);
+    var cap=document.createElement('div');cap.className='note';cap.style.marginTop='10px';cap.style.display='none';
+    var firstNote=$('.note',view);if(firstNote)firstNote.parentNode.insertBefore(cap,firstNote);
+    var PROV=null,curId='PRC:share_savings';
+    function E(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function cn(ct,cv,cm,amber){return '<div class="cn"'+(amber?' style="border-color:rgba(217,119,6,.3)"':'')+'><div class="ct">'+ct+'</div><div class="cv"'+(amber?' style="color:var(--amber)"':'')+'>'+cv+'</div><div class="cm">'+cm+'</div></div>';}
+    function render(id){
+      var n=PROV&&PROV[id];if(!n)return;curId=id;
+      var stt=(n.st||'').replace(/_/g,'-'),ar='<div class="arr">→</div>';
+      chain.innerHTML=cn('Source',E(n.srcn||n.src),E((n.cls||'doc')+(n.eff&&n.eff!=='—'?(' · '+n.eff):'')),false)+ar+cn('Extracted field','"'+E(n.field)+'"','from '+E(n.srcn||'source'),false)+ar+cn('Graph node',E(n.kl)+' · v'+E(n.ver),'confidence '+E(n.conf),false)+ar+cn('Status',E(stt),'awaiting FI sign-off',true);
+      if(kv)kv.innerHTML='<div class="i"><div class="l">Owner</div><div class="v">'+E(n.owner)+'</div></div><div class="i"><div class="l">Effective from</div><div class="v">'+E(n.eff)+'</div></div><div class="i"><div class="l">As-of (graph version)</div><div class="v">v1.2 · 2026-06-12</div></div><div class="i"><div class="l">PII classification</div><div class="v">'+E(n.pii)+'</div></div>';
+      if(title)title.textContent='Trace · '+n.name;if(hint)hint.textContent='node '+id;
+      detail.style.display='none';
+      var cns=$all('.cn',chain);
+      var texts=['<b>Source.</b> '+E(n.srcn||n.src)+(n.url?' — <a href="'+E(n.url)+'" target="_blank" rel="noopener" style="color:var(--green)">open document</a>':'')+'. The original document this fact was read from.','<b>Extracted field.</b> The value the system pulled: “'+E(n.field)+'”.','<b>Graph node.</b> Stored as a '+E(n.kl)+' node (version '+E(n.ver)+') at '+E(n.conf)+' confidence — placed automatically, not yet approved by a person.','<b>Status.</b> '+E(stt)+': the system assumed this value. A person must sign it off before any agent can quote it.<br/><button class="cta" id="pv-go-signoff">Go to Sign-off →</button>'];
+      cns.forEach(function(c,i){c.addEventListener('click',function(){cns.forEach(function(x){x.classList.remove('on');});c.classList.add('on');detail.style.display='block';detail.innerHTML=texts[i]||'';var g=$('#pv-go-signoff');if(g)g.addEventListener('click',function(){goView('signoff');});});});
+      var isRate=(id==='PRC:share_savings');bar.style.display=isRate?'':'none';cap.style.display='none';
+      bar.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v==='12');});
     }
+    function setV(v){
+      if(v==='12'){render(curId);return;}
+      var cns=$all('.cn',chain),ext=cns[1]?cns[1].querySelector('.cv'):null,nodev=cns[2]?cns[2].querySelector('.cv'):null,asof=null;
+      $all('.kv .i',view).forEach(function(i){if(i.querySelector('.l')&&i.querySelector('.l').textContent==='As-of (graph version)')asof=i.querySelector('.v');});
+      bar.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
+      if(ext)ext.textContent='"0.03% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.7';if(asof)asof.textContent='v1.1 · 2026-05-20';
+      cap.style.display='block';cap.innerHTML='<b>Illustrative example</b> (sample figures, not from this instance). On v1.1 the agent would have quoted <b>0.03%</b>. The 0.05% rate took effect 02 Mar 2026 but was not ratified into the graph until v1.2 — bitemporal tracking is what makes “which rate did the agent quote, and was it current?” answerable.';
+    }
+    bar.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();setV(b.dataset.v);});});
+    $all('.row-list .lrow',view).forEach(function(r){r.addEventListener('click',function(){var t=r.querySelector('.lt')?r.querySelector('.lt').textContent:'source';var mm=r.querySelector('.lm')?r.querySelector('.lm').textContent:'';toast(t+' — '+mm);});});
+    window.__viewProv=function(id){goView('provenance');if(PROV&&PROV[id])render(id);else curId=id;};
+    try{var xhr=new XMLHttpRequest();xhr.open('GET','ccu_graph.json?v=2',true);xhr.onload=function(){if((xhr.status>=200&&xhr.status<400)||xhr.status===0){try{var d=JSON.parse(xhr.responseText);PROV=d.nodes||{};var dl=document.getElementById('pv-list');if(dl){var o='';Object.keys(PROV).forEach(function(k){o+='<option value="'+E(PROV[k].name)+' · '+E(PROV[k].kl)+' ['+k+']">';});dl.innerHTML=o;}var inp=document.getElementById('pv-search');if(inp)inp.addEventListener('change',function(){var v=inp.value,m=v.match(/\[([^\]]+)\]\s*$/),id=m?m[1]:null;if(!id){id=Object.keys(PROV).find(function(k){return PROV[k].name===v;});}if(id&&PROV[id]){render(id);inp.value='';}});render(curId);}catch(e){}}};xhr.send();}catch(e){}
   }
   function gaps(){
     var view=$('#view-gaps');if(!view)return;

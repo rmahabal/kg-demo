@@ -983,7 +983,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
    +'.gf-chip:hover{border-color:var(--green)}.gf-chip.on{background:var(--green);color:#fff;border-color:var(--green)}'
    +'#view-gaps .a-item{cursor:pointer}#view-gaps .a-item:hover{background:var(--surface-2)}'
    +'#view-gaps .kpi:last-child{cursor:pointer}#view-gaps .kpi:last-child:hover{border-color:var(--green)}'
-   +'.ov-clk{cursor:pointer;transition:.15s}#view-overview .kpi.ov-clk:hover{border-color:var(--green)}#view-overview .bg-row.ov-clk{border-radius:8px;padding:4px 6px;margin:2px -6px}#view-overview .bg-row.ov-clk:hover{background:var(--surface-2)}#view-explorer .mx tbody .cell{cursor:pointer}#view-explorer .mx tbody .cell:hover{outline:2px solid var(--green);outline-offset:-2px;border-radius:4px}';
+   +'.ov-clk{cursor:pointer;transition:.15s}#view-overview .kpi.ov-clk:hover{border-color:var(--green)}#view-overview .bg-row.ov-clk{border-radius:8px;padding:4px 6px;margin:2px -6px}#view-overview .bg-row.ov-clk:hover{background:var(--surface-2)}#view-explorer .mx tbody .cell{cursor:pointer}#view-explorer .mx tbody .cell:hover{outline:2px solid var(--green);outline-offset:-2px;border-radius:4px}.flowdesc{margin-top:7px;font-size:12px;color:var(--muted);line-height:1.4}.flowdesc .fd-i{color:var(--green);font-weight:800;margin-right:5px}';
   var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
   function goView(v){var a=$('a[data-view="'+v+'"]');if(a)a.click();}
   function wireBtns(){
@@ -1067,7 +1067,21 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
   function signoffLineage(){
     $all('#view-signoff .js-row .qact').forEach(function(act){if(act.__lin)return;act.__lin=1;var a=document.createElement('span');a.className='btn-sm';a.textContent='Lineage';a.style.cursor='pointer';a.title='View this fact’s provenance trace';a.addEventListener('click',function(){goView('provenance');});act.insertBefore(a,act.firstChild);});
   }
-  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}try{matrix();}catch(e){}try{signoffLineage();}catch(e){}}
+  function descriptors(){
+    var D={
+      overview:'Home base — how complete the knowledge is, and how ready your agents are. Start here.',
+      ingest:'Step 1 — turn documents into draft facts the system proposes and you confirm.',
+      explorer:'Browse the knowledge as a connected map — see what’s rich vs. thin.',
+      gaps:'What’s still missing, and which agents can’t run yet because of it.',
+      ask:'The payoff — the same question answered with vs. without the knowledge graph.',
+      provenance:'The paper trail — where any fact came from, and whether it was current when used.',
+      signoff:'The approval desk — a person ratifies draft facts; only ratified facts reach agents.',
+      sync:'Keeps facts current — when a source changes, the fact is re-checked and re-approved.',
+      settings:'How this institution’s graph is configured — schema modules, reg packs, access.'
+    };
+    Object.keys(D).forEach(function(v){var view=document.getElementById('view-'+v);if(!view)return;var box=view.querySelector('.page-h > div');if(!box||box.__d)return;box.__d=1;var d=document.createElement('div');d.className='flowdesc';d.innerHTML='<span class="fd-i">▸</span>'+D[v];box.appendChild(d);});
+  }
+  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}try{matrix();}catch(e){}try{signoffLineage();}catch(e){}try{descriptors();}catch(e){}}
   if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
 })();
 </script>

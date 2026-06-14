@@ -982,7 +982,8 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
    +'.gf-chip{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:.15s}'
    +'.gf-chip:hover{border-color:var(--green)}.gf-chip.on{background:var(--green);color:#fff;border-color:var(--green)}'
    +'#view-gaps .a-item{cursor:pointer}#view-gaps .a-item:hover{background:var(--surface-2)}'
-   +'#view-gaps .kpi:last-child{cursor:pointer}#view-gaps .kpi:last-child:hover{border-color:var(--green)}';
+   +'#view-gaps .kpi:last-child{cursor:pointer}#view-gaps .kpi:last-child:hover{border-color:var(--green)}'
+   +'.ov-clk{cursor:pointer;transition:.15s}#view-overview .kpi.ov-clk:hover{border-color:var(--green)}#view-overview .bg-row.ov-clk{border-radius:8px;padding:4px 6px;margin:2px -6px}#view-overview .bg-row.ov-clk:hover{background:var(--surface-2)}';
   var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
   function goView(v){var a=$('a[data-view="'+v+'"]');if(a)a.click();}
   function wireBtns(){
@@ -1047,7 +1048,18 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
     var kpis=$all('.kpi',view),unlock=kpis[kpis.length-1];
     if(unlock)unlock.addEventListener('click',function(){toast('Loading the Lending & Credit module would move ~9 Blocked agents toward Ready — origination, servicing, collections and credit-risk.');filter('blocked');});
   }
-  function init(){try{wireBtns();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}}
+  function wireExtra(){
+    var textMap=[['Run integrity audit','Integrity audit passed — unique IDs, provenance on every node, no member data, 0 dangling references.'],['Send NEEDS_FI to owners','Sent these unconfirmed items to their owners for sign-off.']];
+    $all('button').forEach(function(b){if(b.__w)return;textMap.forEach(function(m){if(b.textContent.indexOf(m[0])>=0){b.__w=1;b.addEventListener('click',function(){toast(m[1]);});}});});
+    $all('.more').forEach(function(el){if(el.__w||el.hasAttribute('data-go'))return;el.__w=1;el.style.cursor='pointer';var tx=el.textContent,msg=tx.indexOf('pack')>=0?'10 of 25 regulatory packs loaded — depth scales with the product line.':(tx.indexOf('log')>=0?'Opening the full activity log.':'Coming soon.');el.addEventListener('click',function(){toast(msg);});});
+  }
+  function overview(){
+    var v=$('#view-overview');if(!v)return;
+    $all('.bg-row',v).forEach(function(r){r.classList.add('ov-clk');r.title='See these agents in Gaps & Readiness';r.addEventListener('click',function(){goView('gaps');});});
+    var dest={'total nodes':'explorer','relationships':'explorer','fi-attested':'signoff','open gaps':'gaps'};
+    $all('.kpis .kpi',v).forEach(function(k){var lab=k.querySelector('.lab')?k.querySelector('.lab').textContent.trim().toLowerCase():'';if(dest[lab]){k.classList.add('ov-clk');k.addEventListener('click',function(){goView(dest[lab]);});}});
+  }
+  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}}
   if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
 })();
 </script>

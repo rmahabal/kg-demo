@@ -961,5 +961,94 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
 })();
 
 </script>
+<script>
+(function(){
+  function $(s,r){return (r||document).querySelector(s);}
+  function $all(s,r){return [].slice.call((r||document).querySelectorAll(s));}
+  var tEl,tT;
+  function toast(msg){try{if(!tEl){tEl=document.createElement('div');tEl.className='toast';document.body.appendChild(tEl);}tEl.textContent=msg;tEl.classList.add('show');clearTimeout(tT);tT=setTimeout(function(){tEl.classList.remove('show');},2800);}catch(e){}}
+  var css='#view-provenance .cn{cursor:pointer;transition:.15s}'
+   +'#view-provenance .cn:hover{border-color:var(--green)}'
+   +'#view-provenance .cn.on{border-color:var(--green);box-shadow:0 0 0 2px rgba(22,163,74,.15)}'
+   +'.pv-detail{margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-left:3px solid var(--green);border-radius:8px;background:var(--surface-2);font-size:12.5px;line-height:1.5;color:var(--muted)}'
+   +'.pv-detail b{color:var(--ink)}.pv-detail .cta{margin-top:10px}'
+   +'.bt-bar{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-left:auto}'
+   +'.bt-seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden}'
+   +'.bt-seg button{border:0;background:var(--surface);color:var(--muted);font:inherit;font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer}'
+   +'.bt-seg button.on{background:var(--green);color:#fff}'
+   +'#view-provenance .lrow{cursor:pointer;transition:.15s}#view-provenance .lrow:hover{background:var(--surface-2)}'
+   +'.gf-bar{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}'
+   +'.gf-chip{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:.15s}'
+   +'.gf-chip:hover{border-color:var(--green)}.gf-chip.on{background:var(--green);color:#fff;border-color:var(--green)}'
+   +'#view-gaps .a-item{cursor:pointer}#view-gaps .a-item:hover{background:var(--surface-2)}'
+   +'#view-gaps .kpi:last-child{cursor:pointer}#view-gaps .kpi:last-child:hover{border-color:var(--green)}';
+  var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+  function goView(v){var a=$('a[data-view="'+v+'"]');if(a)a.click();}
+  function wireBtns(){
+    var map=[
+      ['#view-provenance','Export examiner package','Examiner package compiled — 445 facts with full lineage. PDF ready to download.'],
+      ['#view-gaps','Route all to owners','Routed all 68 open items to their owners.'],
+      ['#view-ingest','Add source','Drop a rate sheet, policy or disclosure — the system reads it and proposes nodes for you to confirm.'],
+      ['#view-sync','Re-sync sources','Re-syncing 14 sources… all up to date as of today.']
+    ];
+    map.forEach(function(m){$all(m[0]+' button').forEach(function(b){if(!b.__w && b.textContent.indexOf(m[1])>=0){b.__w=1;b.addEventListener('click',function(){toast(m[2]);});}});});
+    $all('#view-gaps .qrow .qact .btn-sm').forEach(function(b){if(b.__w)return;b.__w=1;var open=b.textContent.trim()==='Open';b.addEventListener('click',function(){var row=b.closest('.qrow');var t=row&&row.querySelector('.qt')?row.querySelector('.qt').textContent:'item';toast(open?('Opening “'+t+'” to fill in the missing detail.'):('“'+t+'” routed to its owner.'));});});
+    $all('#view-signoff .js-row .qact .btn-sm').forEach(function(b){if(b.__w||b.classList.contains('js-attest'))return;b.__w=1;b.addEventListener('click',function(){var row=b.closest('.js-row');var t=row&&row.querySelector('.qt')?row.querySelector('.qt').textContent:'this node';toast('Edit opens “'+t+'” to adjust the value before you attest it.');});});
+  }
+  function provenance(){
+    var view=$('#view-provenance');if(!view)return;
+    var chain=$('.chain',view);if(!chain)return;
+    var cns=$all('.cn',chain);
+    var detail=document.createElement('div');detail.className='pv-detail';detail.style.display='none';
+    chain.parentNode.insertBefore(detail,chain.nextSibling);
+    var texts=[
+      '<b>Source.</b> Consumer Ratesheet (PDF), published 02 Mar 2026 on ccu.com — the original document this fact was read from.',
+      '<b>Extracted field.</b> The exact text the system pulled: “0.05% APY on balances $100+”, daily balance, compounded monthly.',
+      '<b>Graph node.</b> Stored as a Pricing node (version 0.9) at 0.85 confidence — placed automatically, not yet approved by a person.',
+      '<b>Status.</b> default-unconfirmed: the system assumed this value. A person at the institution must sign it off before any agent is allowed to quote it.<br/><button class="cta" id="pv-go-signoff">Go to Sign-off →</button>'
+    ];
+    cns.forEach(function(cn,i){cn.addEventListener('click',function(){cns.forEach(function(x){x.classList.remove('on');});cn.classList.add('on');detail.style.display='block';detail.innerHTML=texts[i]||'';var g=$('#pv-go-signoff');if(g)g.addEventListener('click',function(){goView('signoff');});});});
+    $all('.row-list .lrow',view).forEach(function(r){r.addEventListener('click',function(){var t=r.querySelector('.lt')?r.querySelector('.lt').textContent:'source';var mm=r.querySelector('.lm')?r.querySelector('.lm').textContent:'';toast(t+' — '+mm);});});
+    var head=$('.sec-h',view);
+    if(head){
+      var bar=document.createElement('span');bar.className='bt-bar';
+      bar.innerHTML='Agent read graph: <span class="bt-seg"><button data-v="11">v1.1</button><button data-v="12" class="on">v1.2</button></span>';
+      head.appendChild(bar);
+      var ext=cns[1]?cns[1].querySelector('.cv'):null,nodev=cns[2]?cns[2].querySelector('.cv'):null,asof=null;
+      $all('.kv .i',view).forEach(function(i){if(i.querySelector('.l')&&i.querySelector('.l').textContent==='As-of (graph version)')asof=i.querySelector('.v');});
+      var cap=document.createElement('div');cap.className='note';cap.style.marginTop='10px';cap.style.display='none';
+      var note=$('.note',view);if(note)note.parentNode.insertBefore(cap,note);
+      function setV(v){
+        bar.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
+        if(v==='11'){if(ext)ext.textContent='"0.03% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.7';if(asof)asof.textContent='v1.1 · 2026-05-20';cap.style.display='block';cap.innerHTML='<b>On v1.1</b> the agent would have quoted <b>0.03%</b>. The 0.05% rate took effect 02 Mar 2026 but was not ratified into the graph until v1.2 — bitemporal tracking is what makes “which rate did the agent quote, and was it current?” answerable.';}
+        else{if(ext)ext.textContent='"0.05% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.9';if(asof)asof.textContent='v1.2 · 2026-06-12';cap.style.display='none';}
+      }
+      bar.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){setV(b.dataset.v);});});
+    }
+  }
+  function gaps(){
+    var view=$('#view-gaps');if(!view)return;
+    var sec=$all('.card.sec',view)[0];if(!sec)return;
+    var join=$('.joinbox',sec);
+    var items=$all('.a-item',view);
+    var counts={ready:0,partial:0,blocked:0};
+    items.forEach(function(it){var s=it.querySelector('.as');if(!s)return;['ready','partial','blocked'].forEach(function(k){if(s.classList.contains(k))counts[k]++;});});
+    var bar=document.createElement('div');bar.className='gf-bar';
+    bar.innerHTML='<span class="gf-chip on" data-f="all">All 51</span><span class="gf-chip" data-f="ready">Ready '+counts.ready+'</span><span class="gf-chip" data-f="partial">Partial '+counts.partial+'</span><span class="gf-chip" data-f="blocked">Blocked '+counts.blocked+'</span>';
+    if(join&&join.parentNode)join.parentNode.insertBefore(bar,join.nextSibling);else sec.appendChild(bar);
+    function filter(f){
+      bar.querySelectorAll('.gf-chip').forEach(function(c){c.classList.toggle('on',c.dataset.f===f);});
+      items.forEach(function(it){var s=it.querySelector('.as');var show=(f==='all')||(s&&s.classList.contains(f));it.style.display=show?'':'none';});
+      $all('.agroup',view).forEach(function(g){var vis=$all('.a-item',g).some(function(it){return it.style.display!=='none';});g.style.display=vis?'':'none';});
+    }
+    bar.querySelectorAll('.gf-chip').forEach(function(c){c.addEventListener('click',function(){filter(c.dataset.f);});});
+    items.forEach(function(it){it.addEventListener('click',function(){var n=it.querySelector('.an')?it.querySelector('.an').textContent:'';var r=it.querySelector('.ar')?it.querySelector('.ar').textContent:'';var stt=it.querySelector('.as')?it.querySelector('.as').textContent:'';toast(n+' — '+stt+': '+r);});});
+    var kpis=$all('.kpi',view),unlock=kpis[kpis.length-1];
+    if(unlock)unlock.addEventListener('click',function(){toast('Loading the Lending & Credit module would move ~9 Blocked agents toward Ready — origination, servicing, collections and credit-risk.');filter('blocked');});
+  }
+  function init(){try{wireBtns();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}}
+  if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
 </body>
 </html>

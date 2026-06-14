@@ -320,6 +320,9 @@ html.dark .empty .ei{color:var(--green)}
 .kfc.off{opacity:.4;text-decoration:line-through}
 .kfc.spot{border-color:var(--green);background:rgba(22,163,74,.12);color:var(--ink)}
 .kfc.spot .d{box-shadow:0 0 0 2px rgba(22,163,74,.25)}
+.kfc .kfg{margin-left:1px;padding-left:6px;border-left:1px solid var(--border);color:var(--muted);font-weight:800;cursor:pointer}
+.kfc .kfg:hover{color:var(--green)}
+.kfc .kfg.off{opacity:.22;pointer-events:none}
 #graphhost svg{width:100%;height:auto;display:block}
 #graphhost .edge{stroke:var(--edge,#c2ccc7);stroke-width:1.5;fill:none}
 #graphhost .elab{font-size:9px;fill:var(--faint);font-weight:700;text-anchor:middle;font-family:Mulish}
@@ -833,7 +836,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
  var ADJ={};
  G.edges.forEach(function(e){(ADJ[e[0]]=ADJ[e[0]]||[]).push({id:e[1],rel:e[2]});(ADJ[e[1]]=ADJ[e[1]]||[]).push({id:e[0],rel:e[2]});});
  function deg(id){return (ADJ[id]||[]).length;}
- var center='INST:ccu',crumbs=[],hidden={},spot={},W=860,H=560,cx=W/2,cy=H/2;
+ var center='INST:ccu',crumbs=[],hidden={},spot={},lastRing=[],W=860,H=560,cx=W/2,cy=H/2;
  var host=document.getElementById('graphhost'); if(!host)return;
  function neigh(id){var seen={},out=[];(ADJ[id]||[]).forEach(function(e){if(seen[e.id])return;seen[e.id]=1;var nd=G.nodes[e.id];if(!nd||hidden[nd.k])return;out.push({node:nd,rel:e.rel});});return out;}
  function buildRing(id){var ns=neigh(id),byk={};ns.forEach(function(x){(byk[x.node.k]=byk[x.node.k]||[]).push(x);});var ring=[];Object.keys(byk).forEach(function(k){var g=byk[k];if(g.length<=4)g.forEach(function(x){ring.push({type:'node',node:x.node,rel:x.rel});});else ring.push({type:'cluster',k:k,members:g,rel:g[0].rel});});return {ring:ring,total:ns.length};}
@@ -856,7 +859,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
   host.querySelectorAll('.gnode').forEach(function(g){g.addEventListener('click',function(){
     if(g.classList.contains('cluster')){openList(ring[+g.dataset.i]);}
     else{var id=g.dataset.id;if(id===center)detail(center);else centerOn(id);}});});
-  crumbsR();detail(center);applySpot();
+  lastRing=ring;crumbsR();detail(center);applySpot();updateArrows();
  }
  function centerOn(id){if(id===center)return;crumbs.push(center);center=id;render();}
  window.__hubCenter=function(id){if(G.nodes[id])centerOn(id);};
@@ -873,9 +876,12 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
  var counts={};Object.keys(G.nodes).forEach(function(k){var n=G.nodes[k];counts[n.k]=(counts[n.k]||0)+1;});
  var order=['inst','prod','feat','price','disc','doc','pol','rule','auth','cons','offer','seg','chan','oblig','src'];
  var fel=document.getElementById('hub-filters');
- fel.innerHTML=order.filter(function(k){return counts[k];}).map(function(k){return '<span class="kfc" data-k="'+k+'"><span class="d" style="background:'+KCOLOR[k]+'"></span>'+KLABEL[k]+'</span>';}).join('');
+ fel.innerHTML=order.filter(function(k){return counts[k];}).map(function(k){return '<span class="kfc" data-k="'+k+'"><span class="d" style="background:'+KCOLOR[k]+'"></span>'+KLABEL[k]+'<span class="kfg" title="Go to this type in the graph">→</span></span>';}).join('');
  function applySpot(){var host2=document.getElementById('graphhost');if(!host2)return;var any=Object.keys(spot).some(function(k){return spot[k];});host2.classList.toggle('spot-on',any);host2.querySelectorAll('.gnode').forEach(function(g){g.classList.remove('lit','dim');if(!any||g.classList.contains('center'))return;if(spot[g.getAttribute('data-k')])g.classList.add('lit');else g.classList.add('dim');});}
- fel.querySelectorAll('.kfc').forEach(function(f){f.addEventListener('click',function(){var k=f.dataset.k;spot[k]=!spot[k];f.classList.toggle('spot',spot[k]);applySpot();});});
+ function goToType(k){var cl=null,ns=[];lastRing.forEach(function(it){if(it.type==='cluster'){if(it.k===k)cl=it;}else if(it.node.k===k){ns.push(it);}});if(cl){openList(cl);}else if(ns.length===1){centerOn(ns[0].node.id);}else if(ns.length>1){openList({k:k,members:ns});}}
+ function updateArrows(){var present={};lastRing.forEach(function(it){present[it.type==='cluster'?it.k:it.node.k]=1;});fel.querySelectorAll('.kfc').forEach(function(f){var go=f.querySelector('.kfg');if(go)go.classList.toggle('off',!present[f.dataset.k]);});}
+ fel.querySelectorAll('.kfc').forEach(function(f){f.addEventListener('click',function(ev){if(ev.target.closest('.kfg'))return;var k=f.dataset.k;spot[k]=!spot[k];f.classList.toggle('spot',spot[k]);applySpot();});});
+ fel.querySelectorAll('.kfg').forEach(function(go){go.addEventListener('click',function(ev){ev.stopPropagation();goToType(go.parentNode.dataset.k);});});
  // search
  var dl=document.getElementById('hub-nodelist');
  dl.innerHTML=Object.keys(G.nodes).map(function(id){return '<option value="'+esc(G.nodes[id].name)+'::'+id+'">';}).join('');

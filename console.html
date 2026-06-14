@@ -1077,7 +1077,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
   function matrix(){
     var tbl=$('#view-explorer .mx');if(!tbl)return;
     var cols=$all('thead .colh',tbl).map(function(th){return th.textContent.trim();});
-    $all('tbody .cell',tbl).forEach(function(cell){cell.addEventListener('click',function(){var row=cell.closest('tr');var prod=row&&row.querySelector('.rowh')?row.querySelector('.rowh').textContent.trim():'';var td=cell.closest('td');var idx=[].indexOf.call(td.parentNode.children,td);var dim=cols[idx-1]||'';var status=cell.getAttribute('title')||'present';toast(prod+' · '+dim+' — '+status);});});
+    $all('tbody .cell',tbl).forEach(function(cell){cell.addEventListener('click',function(){var row=cell.closest('tr');var prod=row&&row.querySelector('.rowh')?row.querySelector('.rowh').textContent.trim():'';var td=cell.closest('td');var idx=[].indexOf.call(td.parentNode.children,td);var dim=cols[idx-1]||'';var status=cell.getAttribute('title')||'present';if(cell.classList.contains('needs')){toast(prod+' · '+dim+' needs FI input — opening Sign-off');goView('signoff');}else{toast(prod+' · '+dim+' — '+status);}});});
   }
   function signoffLineage(){
     $all('#view-signoff .js-row .qact').forEach(function(act){if(act.__lin)return;act.__lin=1;var a=document.createElement('span');a.className='btn-sm';a.textContent='Lineage';a.style.cursor='pointer';a.title='View this fact’s provenance trace';a.addEventListener('click',function(){goView('provenance');});act.insertBefore(a,act.firstChild);});
@@ -1096,7 +1096,39 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
     };
     Object.keys(D).forEach(function(v){var view=document.getElementById('view-'+v);if(!view)return;var box=view.querySelector('.page-h > div');if(!box||box.__d)return;box.__d=1;var d=document.createElement('div');d.className='flowdesc';d.innerHTML='<span class="fd-i">▸</span>'+D[v];box.appendChild(d);});
   }
-  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}try{matrix();}catch(e){}try{signoffLineage();}catch(e){}try{descriptors();}catch(e){}}
+  function ingest(){
+    var view=$('#view-ingest');if(!view)return;
+    var rl=null,hintSpan=null;$all('.sec-h',view).forEach(function(h){var t=h.querySelector('h3');if(t&&/Sourced so far/i.test(t.textContent)){var n=h.nextElementSibling;if(n&&n.classList.contains('row-list'))rl=n;hintSpan=h.querySelector('.hint');}});
+    if(!rl)return;
+    var SM={ratesheet:['Consumer Ratesheet 03.02.26 (PDF)','rate sheet','var(--teal)'],feesched:['Consumer fee schedule (PDF)','fee schedule','var(--sky)'],tis_perfchk:['Performance Checking disclosure','TIS disclosure','var(--lime)'],privacy_noac:['Privacy notice','privacy notice','var(--amber)'],web_home:['ccu.com — home','web page','var(--green)'],web_savings:['ccu.com /savings','web page','var(--green)'],web_checking:['ccu.com /checking','web page','var(--green)'],web_certs:['ccu.com /certificates','web page','var(--green)'],web_join:['ccu.com /join','web page','var(--green)'],archetype:['Archetype seed','archetype','var(--slate)'],regpack:['Reg-pack doc','reg pack','var(--amber)']};
+    var KL={inst:'Institution',prod:'Product',feat:'Feature',seg:'Segment',chan:'Channel',rule:'Rule/Threshold',price:'Pricing',auth:'Authority',pol:'Policy',disc:'Disclosure',doc:'Doc Req',offer:'Offer',cons:'Consent',src:'Source'};
+    var xhr=new XMLHttpRequest();xhr.open('GET','ccu_graph.json?v=3',true);xhr.onload=function(){if(!((xhr.status>=200&&xhr.status<400)||xhr.status===0))return;var d;try{d=JSON.parse(xhr.responseText);}catch(e){return;}
+      var N=d.nodes,G={},src=0;
+      Object.keys(N).forEach(function(id){var n=N[id];if(n.k==='src'){src++;return;}var s=n.srcn||'?';if(s==='reg_pack_seed'||s==='?')return;if(!G[s])G[s]={tot:0,types:{}};G[s].tot++;G[s].types[n.k]=(G[s].types[n.k]||0)+1;});
+      var keys=Object.keys(G).sort(function(a,b){return G[b].tot-G[a].tot;});
+      rl.innerHTML=keys.map(function(s){var g=G[s],m=SM[s]||[s,'document','var(--muted)'];var parts=Object.keys(g.types).sort(function(a,b){return g.types[b]-g.types[a];}).map(function(k){return g.types[k]+' '+(KL[k]||k);}).join(', ');return '<div class="lrow"><span class="fi-ic" style="background:'+m[2]+'">▦</span><div><div class="lt">'+m[0]+'</div><div class="lm">'+m[1]+' → '+parts+'</div></div><span class="tag-ok">extracted</span><span class="tag-warn">confirm '+g.tot+'</span></div>';}).join('');
+      if(hintSpan)hintSpan.textContent=src+' sources · all default-unconfirmed';
+    };xhr.send();
+  }
+  function drift(){
+    var view=$('#view-sync');if(!view)return;
+    var card=null;$all('.card.sec',view).forEach(function(c){var hh=c.querySelector('.sec-h h3');if(hh&&/impact chain/i.test(hh.textContent))card=c;});
+    if(!card)return;var chain=card.querySelector('.chain');if(!chain)return;
+    var hn=card.querySelector('.sec-h .hint');if(hn)hn.textContent='pick any fact · live traversal';
+    var pick=document.createElement('div');pick.className='pv-pick';pick.style.margin='0 0 12px';
+    pick.innerHTML='<span>🔎</span><input id="dr-search" list="dr-list" placeholder="If this changes… pick a fact" autocomplete="off"/><datalist id="dr-list"></datalist>';
+    card.querySelector('.sec-h').insertAdjacentElement('afterend',pick);
+    var KL={inst:'Institution',prod:'Product',feat:'Feature',seg:'Segment',chan:'Channel',rule:'Rule/Threshold',price:'Pricing',auth:'Authority',pol:'Policy',disc:'Disclosure',doc:'Doc Req',offer:'Offer',cons:'Consent',src:'Source'};
+    var xhr=new XMLHttpRequest();xhr.open('GET','ccu_graph.json?v=3',true);xhr.onload=function(){if(!((xhr.status>=200&&xhr.status<400)||xhr.status===0))return;var d;try{d=JSON.parse(xhr.responseText);}catch(e){return;}
+      var N=d.nodes,ADJ={};d.edges.forEach(function(e){(ADJ[e[0]]=ADJ[e[0]]||[]).push(e[1]);(ADJ[e[1]]=ADJ[e[1]]||[]).push(e[0]);});
+      var dl=document.getElementById('dr-list');if(dl){var o='';Object.keys(N).forEach(function(id){if(N[id].k==='src')return;o+='<option value="'+N[id].name+' · '+N[id].kl+' ['+id+']">';});dl.innerHTML=o;}
+      function bd(set){var t={};Object.keys(set).forEach(function(x){var k=N[x].k;t[k]=(t[k]||0)+1;});var ks=Object.keys(t).sort(function(a,b){return t[b]-t[a];});return ks.length?ks.map(function(k){return t[k]+' '+(KL[k]||k);}).join(', '):'—';}
+      function trav(id){var n=N[id];if(!n)return;var one={};(ADJ[id]||[]).forEach(function(x){if(N[x]&&N[x].k!=='src')one[x]=1;});var two={};Object.keys(one).forEach(function(x){(ADJ[x]||[]).forEach(function(y){if(y!==id&&!one[y]&&N[y]&&N[y].k!=='src')two[y]=1;});});var ar='<div class="arr" style="transform:rotate(90deg)">→</div>';chain.innerHTML='<div class="cn" style="text-align:left"><div class="ct">If this changes</div><div class="cv">'+n.name+' · '+n.kl+'</div></div>'+ar+'<div class="cn" style="text-align:left"><div class="ct">→ directly touches ('+Object.keys(one).length+')</div><div class="cv">'+bd(one)+'</div></div>'+ar+'<div class="cn" style="text-align:left"><div class="ct">→ ripples to ('+Object.keys(two).length+' more)</div><div class="cv">'+bd(two)+'</div></div>';}
+      var inp=document.getElementById('dr-search');if(inp)inp.addEventListener('change',function(){var v=inp.value,m=v.match(/\[([^\]]+)\]\s*$/),id=m?m[1]:null;if(!id){id=Object.keys(N).find(function(k){return N[k].name===v;});}if(id&&N[id])trav(id);});
+      var def=N['PR:share_savings']?'PR:share_savings':Object.keys(N)[0];trav(def);
+    };xhr.send();
+  }
+  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}try{matrix();}catch(e){}try{signoffLineage();}catch(e){}try{descriptors();}catch(e){}try{ingest();}catch(e){}try{drift();}catch(e){}}
   if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
 })();
 </script>

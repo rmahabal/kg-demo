@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex, nofollow"/>
+<title>Banking Knowledge Graph — Demo Walkthrough</title>
+<script>(function(){try{var t=localStorage.getItem('kg-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--green:#16a34a;--green-600:#15803d;--teal:#0d9488;--lime:#84cc16;--ink:#0f1c19;--slate:#334155;--muted:#5b6776;--faint:#94a3b8;--bg:#f6f8f7;--surface:#ffffff;--surface2:#f4f7f5;--line:#e3e8e6;--radius:16px;--shadow:0 1px 2px rgba(16,24,40,.04),0 14px 38px rgba(16,24,40,.08);--wash:radial-gradient(1100px 480px at 86% -10%,rgba(13,148,136,.12),transparent 60%),radial-gradient(900px 460px at 6% -8%,rgba(22,163,74,.11),transparent 55%),radial-gradient(700px 420px at 60% 112%,rgba(132,204,22,.07),transparent 60%);}
+html.dark{--ink:#e6edf3;--slate:#c2ccd6;--muted:#9aa6b2;--faint:#64748b;--bg:#0a0f12;--surface:#11181d;--surface2:#0e1418;--line:#1d272c;--green:#34d399;--teal:#2dd4bf;--lime:#a3e635;--shadow:0 1px 2px rgba(0,0,0,.4),0 16px 40px rgba(0,0,0,.45);--wash:radial-gradient(1100px 480px at 86% -10%,rgba(45,212,191,.11),transparent 60%),radial-gradient(900px 460px at 6% -8%,rgba(52,211,153,.10),transparent 55%);}
+*{box-sizing:border-box}
+body{margin:0;font-family:Mulish,-apple-system,sans-serif;background:var(--bg);background-image:var(--wash);background-attachment:fixed;color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1000px;margin:0 auto;padding:48px 24px 80px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--green),var(--teal));display:grid;place-items:center;color:#fff;font-weight:900;font-size:19px;box-shadow:0 6px 18px rgba(13,148,136,.35)}
+.bn{font-weight:800;letter-spacing:-.3px;font-size:15px}.bs{font-size:12px;color:var(--muted);font-weight:600}
+.theme{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--slate);font-size:16px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--teal);background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);padding:6px 13px;border-radius:999px;margin-bottom:18px}
+h1{font-size:40px;font-weight:900;letter-spacing:-1px;line-height:1.08;margin:0 0 16px;max-width:760px}
+.lede{font-size:18px;color:var(--muted);max-width:680px;line-height:1.6;margin-bottom:14px}
+.frame{font-size:13.5px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:11px;padding:13px 18px;margin:8px 0 36px;max-width:720px}
+.frame b{color:var(--slate)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 26px;transition:.2s;text-decoration:none;color:inherit}
+.card:hover{transform:translateY(-3px);border-color:var(--teal)}
+.card.primary{grid-column:1 / -1;background:linear-gradient(120deg,rgba(22,163,74,.06),rgba(13,148,136,.04))}
+.cnum{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--teal));color:#fff;font-weight:800;font-size:15px;margin-bottom:14px}
+.card h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin:0 0 6px}
+.card p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.55}
+.card .go{margin-top:14px;font-size:13px;font-weight:800;color:var(--green-600)}
+html.dark .card .go{color:var(--green)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--slate)}
+.foot{margin-top:40px;font-size:12px;color:var(--faint);line-height:1.7;text-align:center}
+@media(max-width:760px){.cards{grid-template-columns:1fr}h1{font-size:30px}}
+</style></head><body>
+<div class="wrap">
+  <div class="toolbar">
+    <div class="brand"><div class="logo">U</div><div><div class="bn">Uptiq UOS</div><div class="bs">Banking Knowledge Graph</div></div></div>
+    <button class="theme" id="theme">◐</button>
+  </div>
+
+  <span class="badge">● Demo walkthrough · synthetic data · not production</span>
+  <h1>The institution's knowledge, as a graph agents can ground on.</h1>
+  <p class="lede">A pre-built knowledge graph for a credit union — products, pricing, rules, disclosures and the regulations that govern them — that agents reason over instead of guessing. Built from public sources, awaiting the institution's sign-off.</p>
+  <div class="frame">All four pieces below run on the <b>real California Credit Union graph</b> (445 knowledge nodes, built from public sources; no member data). It's a <b>design prototype</b>, not the production UI.</div>
+
+  <div class="cards">
+    <a class="card primary" href="console.html">
+      <span class="cnum">◧</span>
+      <h2>KG Console — start here</h2>
+      <p>The full management experience: overview &amp; agent-readiness, the graph explorer (with the live 756-node navigator), coverage matrix, gaps queue, provenance, sign-off with a working attestation loop, and the "Ask the Agent" payoff — the same question answered with vs without the graph.</p>
+      <div class="tags"><span class="tag">9 views</span><span class="tag">live attestation</span><span class="tag">Ask-the-Agent</span><span class="tag">folded navigator</span></div>
+      <div class="go">Open the console →</div>
+    </a>
+    <a class="card" href="navigator.html">
+      <span class="cnum">◈</span>
+      <h2>Graph Navigator</h2>
+      <p>The full graph — 756 nodes, 780 edges — explored one neighbourhood at a time. Ego-view, typed clustering, expand-on-click, breadcrumb, filters, search. Proves it never hairballs (max ~9 glyphs on screen, at any scale).</p>
+      <div class="tags"><span class="tag">756 nodes</span><span class="tag">no hairball</span></div>
+      <div class="go">Explore the graph →</div>
+    </a>
+    <a class="card" href="architecture.html">
+      <span class="cnum">▤</span>
+      <h2>Architecture</h2>
+      <p>How it's built: Sources → KGM agents → Knowledge Graph ↔ Instance Graph bridge → Retrieval → Agent Graph, on QORE, under the Control Framework. Flow chips trace each path. Plus the 16-object data model.</p>
+      <div class="tags"><span class="tag">interactive</span><span class="tag">flows</span></div>
+      <div class="go">See the architecture →</div>
+    </a>
+    <a class="card" href="explainer.html">
+      <span class="cnum">◇</span>
+      <h2>What we'd add</h2>
+      <p>Plain-language notes on five gaps we'd strengthen over the canonical spec: a Regulation object, read-vs-say sensitivity, fail-safe behaviour on missing/stale knowledge, the instance bridge, and proving documents were understood.</p>
+      <div class="tags"><span class="tag">analysis</span><span class="tag">plain language</span></div>
+      <div class="go">Read the notes →</div>
+    </a>
+  </div>
+
+  <div class="foot">Aurora design language · effective-html prototypes · California CU graph v1.2 (synthetic, public-sourced) · internal demo — not for distribution.</div>
+</div>
+<script>document.getElementById('theme').addEventListener('click',function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('kg-theme',d?'dark':'light');}catch(e){}});</script>
+</body></html>

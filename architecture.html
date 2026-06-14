@@ -1,0 +1,256 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Knowledge Graph — Architecture</title>
+<script>(function(){try{var t=localStorage.getItem('kg-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--green:#16a34a;--green-600:#15803d;--teal:#0d9488;--lime:#84cc16;--ink:#0f1c19;--slate:#334155;--muted:#5b6776;--faint:#9aa6ad;--bg:#eef2f0;--surface:#ffffff;--surface2:#f5f8f6;--line:#dde4e1;--amber:#d97706;--sky:#0284c7;--purple:#a855f7;--edge:#b8c4be;}
+html.dark{--ink:#e6edf3;--slate:#c2ccd6;--muted:#94a3b8;--faint:#5b6b78;--bg:#080c0e;--surface:#0f1418;--surface2:#0c1115;--line:#1d272c;--green:#34d399;--teal:#2dd4bf;--lime:#a3e635;--edge:#2a363c;}
+*{box-sizing:border-box}
+body{margin:0;font-family:Mulish,-apple-system,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.top{display:flex;align-items:center;gap:16px;padding:16px 26px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--teal));display:grid;place-items:center;color:#fff;font-weight:800}
+.title{font-weight:800;letter-spacing:-.3px}.subtitle{font-size:12px;color:var(--muted);font-weight:600}
+.spacer{flex:1}
+.scenes{display:flex;gap:4px}
+.scbtn{font-size:13px;font-weight:700;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.scbtn.on{background:linear-gradient(135deg,var(--green),var(--teal));color:#fff;border:none}
+.theme{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--slate)}
+.wrap{padding:20px 26px 40px;max-width:1360px;margin:0 auto}
+.flows{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{font-size:13px;font-weight:700;padding:8px 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--slate);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.chip .cd{width:9px;height:9px;border-radius:50%;background:var(--faint)}
+.chip.on{border-color:var(--green-600);background:rgba(22,163,74,.08);color:var(--green-600)}
+html.dark .chip.on{color:var(--green)}
+.chip.on .cd{background:var(--green)}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 30px rgba(16,24,40,.05)}
+svg{width:100%;height:auto;display:block}
+/* nodes */
+.node rect{fill:var(--surface2);stroke:var(--line);stroke-width:1.5;transition:.25s}
+.node .nt{font-weight:800;font-size:15px;fill:var(--ink);font-family:Mulish}
+.node .ns{font-size:11.5px;fill:var(--muted);font-family:Mulish;font-weight:600}
+.n-band rect{fill:var(--surface2)}
+.n-kg rect{fill:rgba(13,148,136,.07);stroke:var(--teal);stroke-width:2}
+.n-ig rect{fill:rgba(22,163,74,.07);stroke:var(--green)}
+.n-agent rect{stroke:var(--sky)}
+.n-ag rect{fill:rgba(2,132,199,.06);stroke:var(--sky);stroke-width:2}
+.n-src rect{stroke:var(--slate)}
+.n-gate rect{fill:rgba(217,119,6,.07);stroke:var(--amber);stroke-dasharray:5 4}
+.n-ans rect{fill:rgba(132,204,22,.08);stroke:var(--lime);stroke-width:2}
+.node.dim{opacity:.28}
+.node.lit rect{stroke-width:2.8;filter:drop-shadow(0 4px 14px rgba(13,148,136,.3))}
+/* edges */
+.edge{fill:none;stroke:var(--edge);stroke-width:2}
+.edge.dim{opacity:.12}
+.edge.lit{stroke:var(--green);stroke-width:3;stroke-dasharray:8 6;animation:march 1s linear infinite}
+@keyframes march{to{stroke-dashoffset:-28}}
+.edlab{font-size:11px;fill:var(--faint);font-weight:700;font-family:Mulish;text-anchor:middle}
+.edlab.dim{opacity:.12}.edlab.lit{fill:var(--green-600)}html.dark .edlab.lit{fill:var(--green)}
+#arrhead{fill:var(--edge)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12px;color:var(--muted);font-weight:600}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend .sw{width:11px;height:11px;border-radius:3px}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.ncard{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:11px;padding:15px 18px}
+.ncard.amber{border-left-color:var(--amber)}
+.ncard h4{margin:0 0 6px;font-size:13.5px;font-weight:800}
+.ncard p{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
+.ncard b{color:var(--slate)}
+.scene{display:none}.scene.on{display:block}
+/* data model */
+.dmcol rect{fill:var(--surface2);stroke:var(--line);stroke-width:1.5}
+.dm-ent rect:first-child{fill:rgba(22,163,74,.05)}.dm-rul rect:first-child{fill:rgba(13,148,136,.06)}
+.dm-gov rect:first-child{fill:rgba(132,204,22,.06)}.dm-src rect:first-child{fill:rgba(100,116,139,.06)}
+.dmh{font-weight:800;font-size:15px;fill:var(--ink);font-family:Mulish}
+.dms{font-size:11px;fill:var(--muted);font-family:Mulish;font-weight:600}
+.dmcard rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.dmt{font-size:13px;font-weight:700;fill:var(--slate);font-family:Mulish}
+.foot{margin-top:24px;font-size:11.5px;color:var(--faint);text-align:center}
+@media(max-width:900px){.notes{grid-template-columns:1fr}}
+</style></head><body>
+<div class="top">
+  <div class="brand"><div class="logo">U</div><div><div class="title">Knowledge Graph — Architecture</div><div class="subtitle">how it's built · how an agent grounds · UOS</div></div></div>
+  <div class="spacer"></div>
+  <div class="scenes"><button class="scbtn on" data-scene="arch">Architecture</button><button class="scbtn" data-scene="model">Data model</button></div>
+  <button class="theme" id="theme">◐</button>
+</div>
+<div class="wrap">
+
+  <div class="scene on" id="scene-arch">
+    <div class="flows" id="flows">
+      <div class="chip on" data-flow="all"><span class="cd"></span>Whole system</div>
+      <div class="chip" data-flow="build"><span class="cd"></span>Build &amp; attest</div>
+      <div class="chip" data-flow="serve"><span class="cd"></span>Serve a query</div>
+      <div class="chip" data-flow="bridge"><span class="cd"></span>Instance bridge</div>
+      <div class="chip" data-flow="govern"><span class="cd"></span>Govern</div>
+    </div>
+    <div class="stage">
+      <svg viewBox="0 0 1300 800" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path id="arrhead" d="M0,0 L7,3 L0,6 Z"/></marker></defs>
+        <path class="edge" data-e="build" d="M228,183 C257,183 257,183 286,183" marker-end="url(#arr)"/>
+<path class="edge" data-e="build" d="M228,283 C257,283 257,283 286,283" marker-end="url(#arr)"/>
+<path class="edge" data-e="build" d="M436,183 C468,183 468,255 500,255" marker-end="url(#arr)"/>
+<text class="edlab" data-e="build" x="468" y="213">capture</text>
+<path class="edge" data-e="build" d="M436,283 C468,283 468,255 500,255" marker-end="url(#arr)"/>
+<text class="edlab" data-e="build" x="468" y="263">validate</text>
+<path class="edge" data-e="build" d="M650,590 C650,475 650,475 650,360" marker-end="url(#arr)"/>
+<text class="edlab" data-e="build" x="650" y="469">attest</text>
+<path class="edge" data-e="serve" d="M1110,234 C1085,234 1085,228 1060,228" marker-end="url(#arr)"/>
+<text class="edlab" data-e="serve" x="1085" y="225">① ask</text>
+<path class="edge" data-e="serve" d="M880,228 C840,228 840,255 800,255" marker-end="url(#arr)"/>
+<text class="edlab" data-e="serve" x="840" y="236">② slice</text>
+<path class="edge" data-e="serve" d="M1060,228 C1085,228 1085,234 1110,234" marker-end="url(#arr)"/>
+<text class="edlab" data-e="serve" x="1085" y="225">③ return</text>
+<path class="edge" data-e="serve" d="M1185,292 C1185,326 1185,326 1185,360" marker-end="url(#arr)"/>
+<text class="edlab" data-e="serve" x="1185" y="320">④ answer</text>
+<path class="edge" data-e="bridge" d="M650,430 C650,395 650,395 650,360" marker-end="url(#arr)"/>
+<text class="edlab" data-e="bridge" x="650" y="389">instance_of</text>
+<path class="edge" data-e="govern" d="M1185,176 C1185,130 650,130 650,84" marker-end="url(#arr)"/>
+<text class="edlab" data-e="govern" x="918" y="124">action</text>
+<path class="edge" data-e="govern" d="M650,84 C650,117 650,117 650,150" marker-end="url(#arr)"/>
+<text class="edlab" data-e="govern" x="650" y="111">validate vs rule</text>
+<g class="node n-band" data-flow="govern" data-k="cf">
+<rect x="40" y="26" width="1220" height="58" rx="12"/>
+<text class="nt" x="62" y="51.0">Control Framework</text>
+<text class="ns" x="62" y="70.0">governs every agent · any vendor — authority · action↔validation · audit</text>
+</g>
+<g class="node n-band" data-flow="build serve bridge govern" data-k="qore">
+<rect x="40" y="716" width="1220" height="62" rx="12"/>
+<text class="nt" x="62" y="743.0">QORE platform — the kernel</text>
+<text class="ns" x="62" y="762.0">build · run · govern · AI model gateway · Uptiq SLMs · single-tenant runtime</text>
+</g>
+<g class="node n-src" data-flow="build" data-k="src_pub">
+<rect x="60" y="150" width="168" height="66" rx="12"/>
+<text class="nt" x="144.0" y="176" text-anchor="middle">Public sources</text>
+<text class="ns" x="144.0" y="194" text-anchor="middle">website · rate sheet · fees · disclosures</text>
+</g>
+<g class="node n-src" data-flow="build" data-k="src_fi">
+<rect x="60" y="250" width="168" height="66" rx="12"/>
+<text class="nt" x="144.0" y="276" text-anchor="middle">FI documents & systems</text>
+<text class="ns" x="144.0" y="294" text-anchor="middle">policies · authority · core / CRM</text>
+</g>
+<g class="node n-agent" data-flow="build" data-k="cap">
+<rect x="286" y="150" width="150" height="66" rx="12"/>
+<text class="nt" x="361.0" y="176" text-anchor="middle">KGM · Capture</text>
+<text class="ns" x="361.0" y="194" text-anchor="middle">ingest + place in graph</text>
+</g>
+<g class="node n-agent" data-flow="build" data-k="val">
+<rect x="286" y="250" width="150" height="66" rx="12"/>
+<text class="nt" x="361.0" y="276" text-anchor="middle">KGM · Validate</text>
+<text class="ns" x="361.0" y="294" text-anchor="middle">structure + sense check</text>
+</g>
+<g class="node n-kg" data-flow="build serve bridge govern" data-k="kg">
+<rect x="500" y="150" width="300" height="210" rx="12"/>
+<text class="nt" x="650.0" y="178" text-anchor="middle">Knowledge Graph</text>
+<text class="ns" x="650.0" y="196" text-anchor="middle">16 objects · 4 kinds · per-FI · one schema</text>
+</g>
+<g class="node n-ig" data-flow="bridge" data-k="ig">
+<rect x="500" y="430" width="300" height="120" rx="12"/>
+<text class="nt" x="650.0" y="458" text-anchor="middle">Instance Graph</text>
+<text class="ns" x="650.0" y="476" text-anchor="middle">real members & accounts · graph DB (proven) · runtime</text>
+</g>
+<g class="node n-gate" data-flow="build" data-k="fi">
+<rect x="500" y="590" width="300" height="56" rx="12"/>
+<text class="nt" x="650.0" y="616" text-anchor="middle">FI attestation · sign-off</text>
+<text class="ns" x="650.0" y="634" text-anchor="middle">default-unconfirmed → ratified</text>
+</g>
+<g class="node n-agent" data-flow="serve" data-k="rc">
+<rect x="880" y="180" width="180" height="96" rx="12"/>
+<text class="nt" x="970.0" y="208" text-anchor="middle">KGM · Retrieval / Context</text>
+<text class="ns" x="970.0" y="226" text-anchor="middle">pages the right subgraph slice</text>
+</g>
+<g class="node n-ag" data-flow="serve govern" data-k="ag">
+<rect x="1110" y="176" width="150" height="116" rx="12"/>
+<text class="nt" x="1185.0" y="204" text-anchor="middle">Agent Graph</text>
+<text class="ns" x="1185.0" y="222" text-anchor="middle">51 agents · grounded, governed</text>
+</g>
+<g class="node n-ans" data-flow="serve" data-k="ans">
+<rect x="1110" y="360" width="150" height="86" rx="12"/>
+<text class="nt" x="1185.0" y="386" text-anchor="middle">Grounded answer</text>
+<text class="ns" x="1185.0" y="404" text-anchor="middle">+ citation & provenance</text>
+</g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--teal)"></span>Knowledge Graph</span>
+      <span><span class="sw" style="background:var(--green)"></span>Instance Graph</span>
+      <span><span class="sw" style="background:var(--sky)"></span>Agents (KGM &amp; Agent Graph)</span>
+      <span><span class="sw" style="background:var(--amber)"></span>Attestation gate</span>
+      <span><span class="sw" style="background:var(--lime)"></span>Answer</span>
+      <span style="margin-left:auto">click a flow chip to trace a path</span>
+    </div>
+    <div class="notes">
+      <div class="ncard"><h4>Storage — decided</h4><p>v1 is a <b>logical graph over ordinary storage</b> (typed-reference records). The <b>instance graph</b> is a real graph DB (the proven Neo4j fraud-ring POC). The knowledge graph adopts a graph engine only when a trigger fires: live multi-hop queries, graph visualisation as a feature, or cross-FI analytics. The model ports either way.</p></div>
+      <div class="ncard amber"><h4>The bridge — our spec to write</h4><p>The knowledge graph holds <b>no member data</b>; the instance graph holds the members. They meet at one edge — <b>account → instance-of → product</b> — so an agent steps from a real account to the product, to the rule that governs it. Neither document specifies this join yet; it's ours to define.</p></div>
+    </div>
+  </div>
+
+  <div class="scene" id="scene-model">
+    <div class="flows"><div class="chip on"><span class="cd"></span>16 objects · 4 kinds · one universal schema · per-FI</div></div>
+    <div class="stage">
+      <svg viewBox="0 0 1290 700" xmlns="http://www.w3.org/2000/svg">
+        <g class="dmcol dm-ent"><rect x="30" y="40" width="300" height="640" rx="14"/>
+<text class="dmh" x="48" y="76">Entities</text>
+<text class="dms" x="48" y="96">who & what</text>
+<g class="dmcard"><rect x="46" y="120" width="268" height="56" rx="9"/><text class="dmt" x="62" y="154">Institution</text></g>
+<g class="dmcard"><rect x="46" y="192" width="268" height="56" rx="9"/><text class="dmt" x="62" y="226">Product</text></g>
+<g class="dmcard"><rect x="46" y="264" width="268" height="56" rx="9"/><text class="dmt" x="62" y="298">Feature</text></g>
+<g class="dmcard"><rect x="46" y="336" width="268" height="56" rx="9"/><text class="dmt" x="62" y="370">Segment</text></g>
+<g class="dmcard"><rect x="46" y="408" width="268" height="56" rx="9"/><text class="dmt" x="62" y="442">Customer *</text></g>
+<g class="dmcard"><rect x="46" y="480" width="268" height="56" rx="9"/><text class="dmt" x="62" y="514">Account *</text></g>
+<g class="dmcard"><rect x="46" y="552" width="268" height="56" rx="9"/><text class="dmt" x="62" y="586">Channel</text></g>
+</g>
+<g class="dmcol dm-rul"><rect x="342" y="40" width="300" height="640" rx="14"/>
+<text class="dmh" x="360" y="76">Deterministic rules</text>
+<text class="dms" x="360" y="96">machine-applied · never LLM-guessed</text>
+<g class="dmcard"><rect x="358" y="120" width="268" height="56" rx="9"/><text class="dmt" x="374" y="154">Rule / Threshold</text></g>
+<g class="dmcard"><rect x="358" y="192" width="268" height="56" rx="9"/><text class="dmt" x="374" y="226">Pricing</text></g>
+<g class="dmcard"><rect x="358" y="264" width="268" height="56" rx="9"/><text class="dmt" x="374" y="298">Authority</text></g>
+</g>
+<g class="dmcol dm-gov"><rect x="654" y="40" width="300" height="640" rx="14"/>
+<text class="dmh" x="672" y="76">Governance documents</text>
+<g class="dmcard"><rect x="670" y="120" width="268" height="56" rx="9"/><text class="dmt" x="686" y="154">Policy</text></g>
+<g class="dmcard"><rect x="670" y="192" width="268" height="56" rx="9"/><text class="dmt" x="686" y="226">Disclosure</text></g>
+<g class="dmcard"><rect x="670" y="264" width="268" height="56" rx="9"/><text class="dmt" x="686" y="298">Document req.</text></g>
+<g class="dmcard"><rect x="670" y="336" width="268" height="56" rx="9"/><text class="dmt" x="686" y="370">Offer / Promotion</text></g>
+<g class="dmcard"><rect x="670" y="408" width="268" height="56" rx="9"/><text class="dmt" x="686" y="442">Consent</text></g>
+</g>
+<g class="dmcol dm-src"><rect x="966" y="40" width="300" height="640" rx="14"/>
+<text class="dmh" x="984" y="76">Source</text>
+<g class="dmcard"><rect x="982" y="120" width="268" height="56" rx="9"/><text class="dmt" x="998" y="154">Source (system / doc)</text></g>
+</g>
+      </svg>
+    </div>
+    <div class="notes">
+      <div class="ncard"><h4>One graph, segments are subgraphs</h4><p>The 16-object core fully covers <b>Consumer</b>. SMB / Business / Commercial add composable modules — Parties &amp; Ownership (KYB), Lending &amp; Credit, Product subtypes. <b>Customer</b> generalises to Party = Person | Legal Entity. One schema per FI; turning on a module lights up the blocked agent families.</p></div>
+      <div class="ncard amber"><h4>What we'd add (see explainer)</h4><p>A first-class <b>Regulation</b> object (so "everything governed by Reg E §1005.11" is one hop), <b>four-way sensitivity</b> (read vs say), and written <b>serving rules</b> for missing / stale / conflicting knowledge. * Customer &amp; Account stay empty in the knowledge graph by design.</p></div>
+    </div>
+  </div>
+
+  <div class="foot">Architecture diagram · effective-html · companion to the KG console prototype and the gaps explainer · illustrative</div>
+</div>
+<script>
+// scenes
+document.querySelectorAll('.scbtn').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('.scbtn').forEach(function(x){x.classList.remove('on');});b.classList.add('on');
+  document.querySelectorAll('.scene').forEach(function(s){s.classList.toggle('on',s.id==='scene-'+b.dataset.scene);});
+});});
+// flows
+var chips=document.querySelectorAll('#flows .chip');
+var nodes=document.querySelectorAll('#scene-arch .node');
+var edges=document.querySelectorAll('#scene-arch .edge, #scene-arch .edlab');
+function setFlow(f){
+  chips.forEach(function(c){c.classList.toggle('on',c.dataset.flow===f);});
+  if(f==='all'){
+    nodes.forEach(function(n){n.classList.remove('dim','lit');});
+    edges.forEach(function(e){e.classList.remove('dim','lit');});
+    return;
+  }
+  nodes.forEach(function(n){var inF=(n.dataset.flow||'').split(' ').indexOf(f)>=0;n.classList.toggle('lit',inF);n.classList.toggle('dim',!inF);});
+  edges.forEach(function(e){var inF=(e.dataset.e||'').split(' ').indexOf(f)>=0;e.classList.toggle('lit',inF);e.classList.toggle('dim',!inF);});
+}
+chips.forEach(function(c){c.addEventListener('click',function(){setFlow(c.dataset.flow);});});
+document.getElementById('theme').addEventListener('click',function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('kg-theme',d?'dark':'light');}catch(e){}});
+</script>
+</body></html>

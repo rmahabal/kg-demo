@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Five things we'd add to the Knowledge Graph — working notes</title>
+<script>(function(){try{var t=localStorage.getItem('kg-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');}catch(e){}})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--green:#16a34a;--green-600:#15803d;--teal:#0d9488;--lime:#84cc16;--ink:#111827;--slate:#334155;--muted:#5b6776;--faint:#94a3b8;--bg:#f6f8f7;--surface:#ffffff;--surface-2:#f4f7f5;--border:#e3e8e6;--amber:#d97706;--red:#ef4444;--sky:#0284c7;--radius:14px;--shadow:0 1px 2px rgba(16,24,40,.04),0 10px 30px rgba(16,24,40,.07);--wash:radial-gradient(1100px 460px at 88% -10%,rgba(13,148,136,.10),transparent 60%),radial-gradient(900px 460px at 4% -8%,rgba(22,163,74,.10),transparent 55%);}
+html.dark{--ink:#e6edf3;--slate:#c2ccd6;--muted:#9aa6b2;--faint:#64748b;--bg:#0a0f12;--surface:#11181d;--surface-2:#0e1418;--border:#1f2a30;--green:#34d399;--teal:#2dd4bf;--lime:#a3e635;--shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.4);--wash:radial-gradient(1100px 460px at 88% -10%,rgba(45,212,191,.10),transparent 60%),radial-gradient(900px 460px at 4% -8%,rgba(52,211,153,.09),transparent 55%);}
+*{box-sizing:border-box}
+body{margin:0;font-family:Mulish,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);background-image:var(--wash);background-attachment:fixed;color:var(--ink);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--teal);background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.25);padding:6px 13px;border-radius:999px}
+.theme{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--slate);font-size:15px}
+h1{font-size:34px;font-weight:900;letter-spacing:-.8px;line-height:1.12;margin:6px 0 14px}
+.lede{font-size:17px;color:var(--muted);max-width:680px;margin-bottom:10px}
+.frame{font-size:13.5px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--teal);border-radius:10px;padding:14px 18px;margin:22px 0 36px}
+.frame b{color:var(--slate)}
+.item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 28px;margin-bottom:22px}
+.num{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--green),var(--teal));color:#fff;font-weight:800;font-size:15px;margin-bottom:14px}
+.item h2{font-size:21px;font-weight:800;letter-spacing:-.4px;margin:0 0 4px}
+.tagline{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:16px}
+.block{margin:14px 0}
+.block .lab{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin-bottom:5px}
+.block p{margin:0;color:var(--slate)}
+.eg{background:var(--surface-2);border:1px dashed var(--border);border-radius:10px;padding:13px 16px;font-size:14px;color:var(--muted);margin-top:6px}
+.eg b{color:var(--slate)}
+.add{border-top:1px solid var(--border);margin-top:18px;padding-top:16px}
+.add .lab{color:var(--green-600)}html.dark .add .lab{color:var(--green)}
+/* mini decision table */
+.mini{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;font-size:13.5px}
+.mini td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.mini tr td:first-child{font-weight:700;width:38%}
+.mini tr:last-child td{border-bottom:none}
+.tier{display:inline-block;font-size:12px;font-weight:800;padding:2px 9px;border-radius:6px;margin-right:6px}
+.t-pub{color:var(--green-600);background:rgba(22,163,74,.12)}html.dark .t-pub{color:var(--green)}
+.t-int{color:var(--sky);background:rgba(2,132,199,.12)}
+.t-grd{color:var(--amber);background:rgba(217,119,6,.12)}
+.t-res{color:var(--red);background:rgba(239,68,68,.12)}
+/* two-layer diagram */
+.layers{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.lyr{border:1px solid var(--border);border-radius:11px;padding:14px 16px;background:var(--surface-2)}
+.lyr .lh{font-weight:800;font-size:14px;display:flex;align-items:center;gap:8px}
+.lyr .ld{font-size:13px;color:var(--muted);margin-top:3px}
+.lyr.k{border-left:3px solid var(--teal)}.lyr.i{border-left:3px solid var(--green)}
+.bridge{text-align:center;font-size:13px;font-weight:700;color:var(--teal);padding:2px}
+.foot{margin-top:36px;font-size:12.5px;color:var(--faint);text-align:center;line-height:1.7}
+.pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.gp{font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:var(--surface-2);color:var(--slate)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <span class="badge">● Working analysis · not product</span>
+    <button class="theme" id="theme" title="Toggle theme">◐</button>
+  </div>
+
+  <h1>Five things we'd add to the Knowledge Graph</h1>
+  <p class="lede">The knowledge graph that's been built is strong — and it's honest about its own open questions. These are five places we'd strengthen it, in plain language.</p>
+  <div class="frame">These are <b>our notes on top of the existing design</b>, not a description of what's built today. The console mockup stays faithful to what exists; this page is where our additions live, so the two don't get confused. Each item is something the master spec either flags as a gap or leaves thin.</div>
+
+  <!-- 1 -->
+  <div class="item">
+    <div class="num">1</div>
+    <h2>Make regulations a real thing in the graph</h2>
+    <div class="tagline">So you can answer an examiner's favourite question.</div>
+    <div class="block"><div class="lab">The gap</div><p>Today the graph holds <b>rules</b> ("balance under $2,500 means a $5 fee") and <b>disclosures</b>, but the actual regulation behind them isn't its own object — it's only implied. The spec admits this openly.</p></div>
+    <div class="eg">An examiner asks: <b>"show me every action governed by Regulation E, section 1005.11."</b> Right now that's hard to answer, because nothing in the graph <i>is</i> "Reg E §1005.11" — it's scattered across rules and disclosures.</div>
+    <div class="add"><div class="lab">What we'd add</div><p>A first-class <b>Regulation</b> object with its real citation, and every rule, disclosure and policy points back to the exact clause it comes from. Then "what does this regulation touch, and what breaks if it changes?" is one hop away — for examiners and for risk teams.</p></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="item">
+    <div class="num">2</div>
+    <h2>Separate "an agent can read it" from "an agent can say it"</h2>
+    <div class="tagline">Two different permissions, often confused.</div>
+    <div class="block"><div class="lab">The gap</div><p>Today knowledge is tagged mainly by whether it's personal data. But in banking, "the agent may <i>use</i> this" and "the agent may <i>repeat</i> this to a member" are not the same thing.</p></div>
+    <div class="eg">Overdraft fee mechanics: an agent should <b>use</b> them to answer correctly, but shouldn't <b>volunteer</b> the internal waiver thresholds to a member. One tag can't capture both.</div>
+    <div class="add"><div class="lab">What we'd add</div><p>Four clear levels instead of one:</p>
+      <div class="pillrow">
+        <span class="gp"><span class="tier t-pub">Public</span>safe to say to a member</span>
+        <span class="gp"><span class="tier t-int">Internal</span>use it, don't repeat it</span>
+        <span class="gp"><span class="tier t-grd">Guarded</span>only certain agents</span>
+        <span class="gp"><span class="tier t-res">Restricted</span>governance only</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="item">
+    <div class="num">3</div>
+    <h2>Decide what happens when knowledge is missing or stale</h2>
+    <div class="tagline">A confident wrong answer is worse than "I don't know."</div>
+    <div class="block"><div class="lab">The gap</div><p>The spec asks for gap and conflict detection, but doesn't yet say what the agent should actually <i>do</i> when it hits one. That behaviour needs to be a rule, not a guess.</p></div>
+    <table class="mini">
+      <tr><td>If the answer is missing</td><td>say "that's not in the knowledge base" — never invent it</td></tr>
+      <tr><td>If it's out of date</td><td>caveat low-stakes facts; refuse on money, eligibility, rules</td></tr>
+      <tr><td>If two sources disagree</td><td>trust the attested fact over a system pull over the website</td></tr>
+      <tr><td>If it's restricted</td><td>decline and point to a human</td></tr>
+    </table>
+    <div class="add"><div class="lab">What we'd add</div><p>These four behaviours, written down once and applied everywhere — so every agent fails safely the same way.</p></div>
+  </div>
+
+  <!-- 4 -->
+  <div class="item">
+    <div class="num">4</div>
+    <h2>Connect "what the bank knows" to "who the members are"</h2>
+    <div class="tagline">Two graphs, joined by one link.</div>
+    <div class="block"><div class="lab">The gap</div><p>The knowledge graph deliberately holds <b>no member data</b> — which is right. But member accounts live in a separate <b>instance</b> graph (the one we proved with the fraud-ring demo). How the two connect at answer-time isn't spelled out.</p></div>
+    <div class="layers">
+      <div class="lyr k"><div class="lh">◧ Knowledge graph</div><div class="ld">products, rules, disclosures — what the institution knows</div></div>
+      <div class="bridge">↕ &nbsp;one link: <b>this account is an instance of that product</b></div>
+      <div class="lyr i"><div class="lh">◈ Instance graph</div><div class="ld">real members &amp; accounts — pulled live from core systems</div></div>
+    </div>
+    <div class="add"><div class="lab">What we'd add</div><p>Define that single bridge so an agent can step from a real member's account, to the product it's an instance of, to the rule that governs it. The member data never enters the knowledge graph — they just touch through one well-defined link.</p></div>
+  </div>
+
+  <!-- 5 -->
+  <div class="item">
+    <div class="num">5</div>
+    <h2>Prove the documents were actually understood</h2>
+    <div class="tagline">Uploading a policy isn't the same as capturing it.</div>
+    <div class="block"><div class="lab">The gap</div><p>The whole "ready in days" promise rests on reading the FI's documents correctly. But a policy can be in the system and still have half its rules un-extracted. The spec calls this out as an unsolved risk.</p></div>
+    <div class="eg">A 12-page overdraft policy is uploaded. The graph shows "overdraft policy: present" — but did it actually pull out all nine of the rules buried in the fine print? Presence isn't completeness.</div>
+    <div class="add"><div class="lab">What we'd add</div><p>A way to <b>measure</b> extraction, not just confirm a file exists — flagging rule-bearing sentences that were never turned into rules, so a human reviews the real gaps instead of trusting a green checkmark.</p></div>
+  </div>
+
+  <div class="foot">
+    Working notes · companion to the KG console prototype · built on the California CU graph and the UOS Knowledge Graph master spec.<br/>
+    Each item maps to an open question the spec already names — these are proposals, for discussion, not decisions.
+  </div>
+</div>
+<script>document.getElementById('theme').addEventListener('click',function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('kg-theme',d?'dark':'light');}catch(e){}});</script>
+</body>
+</html>

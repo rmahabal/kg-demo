@@ -36,16 +36,20 @@ html.dark .nav a.active{color:var(--green)}
 .icon-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--slate)}
 .icon-btn:hover{background:var(--surface-2)}
 .content{padding:24px 26px 48px;max-width:1600px;margin:0 auto}
-html.wide .content{max-width:none}
 @media(min-width:1500px){.layout{grid-template-columns:1fr 320px}.explorer-grid{grid-template-columns:1fr 300px}}
-.lay-toggle{display:flex;align-items:center;gap:9px;margin:0 6px 6px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;user-select:none;font-size:11px;color:var(--muted);transition:border-color .15s}
-.lay-toggle:hover{border-color:var(--green)}
-.lay-toggle .sw{position:relative;flex:0 0 auto;width:30px;height:16px;border-radius:9px;background:var(--border);transition:background .2s}
-.lay-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
-html.wide .lay-toggle .sw{background:var(--green)}
-html.wide .lay-toggle .sw::after{transform:translateX(14px)}
-.lay-toggle .lt-tx b{color:var(--ink);font-weight:600}
-@media(max-width:1080px){.lay-toggle{display:none}}
+.ex-toggle{display:flex;align-items:center;gap:9px;margin:0 6px 6px;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;user-select:none;font-size:11px;color:var(--muted);transition:border-color .15s}
+.ex-toggle:hover{border-color:var(--green)}
+.ex-toggle .sw{position:relative;flex:0 0 auto;width:30px;height:16px;border-radius:9px;background:var(--border);transition:background .2s}
+.ex-toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+html.explain .ex-toggle .sw{background:var(--green)}
+html.explain .ex-toggle .sw::after{transform:translateX(14px)}
+.ex-toggle .lt-tx b{color:var(--ink);font-weight:600;display:block}
+.ex-toggle .lt-tx i{font-style:normal;color:var(--faint)}
+@media(max-width:1080px){.ex-toggle{display:none}}
+html.explain .cta,html.explain a[data-view],html.explain .kfc,html.explain [data-k],html.explain [data-tab],html.explain .pill.draft,html.explain .kpi .lab{cursor:help}
+html.explain .pill.draft,html.explain .kpi .lab{text-decoration:underline dotted;text-decoration-color:var(--faint);text-underline-offset:3px}
+.tipbox{position:fixed;z-index:9999;max-width:280px;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.45;font-weight:500;padding:9px 11px;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.28);pointer-events:none;display:none;opacity:0;transform:translateY(3px);transition:opacity .14s,transform .14s}
+.tipbox.on{opacity:1;transform:translateY(0)}
 .view{display:none;animation:fade .22s ease}
 .view.active{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -360,7 +364,7 @@ html.dark .toast{background:var(--green);color:#06140e}
       <a data-view="settings"><span class="ic">⚙</span> Settings</a>
     </nav>
     <div class="foot">UOS Console · KG module<br/>v1.2 · build 2026-06-12</div>
-    <div class="lay-toggle" id="layToggle" role="button" tabindex="0" title="Switch between a comfortable fixed width and using the full screen width"><span class="sw"></span><span class="lt-tx"><b>Fit to screen</b></span></div>
+    <div class="ex-toggle" id="exToggle" role="button" tabindex="0" title="Turn plain-language explanations on or off"><span class="sw"></span><span class="lt-tx"><b>Explain mode</b><i>hover buttons &amp; terms</i></span></div>
   </aside>
 
   <div class="main">
@@ -765,7 +769,45 @@ links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefaul
 document.querySelectorAll('[data-go]').forEach(function(el){el.style.cursor='pointer';el.addEventListener('click',function(){go(el.dataset.go);});});
 var h=(location.hash||'').replace('#','');if(h&&document.getElementById('view-'+h))go(h);
 document.getElementById('theme').addEventListener('click',function(){var d=document.documentElement.classList.toggle('dark');try{localStorage.setItem('kg-theme',d?'dark':'light');}catch(e){}});
-(function(){var lt=document.getElementById('layToggle');if(!lt)return;try{if(localStorage.getItem('kg-layout')==='wide')document.documentElement.classList.add('wide');}catch(e){}function set(){var w=document.documentElement.classList.toggle('wide');try{localStorage.setItem('kg-layout',w?'wide':'fit');}catch(e){}}lt.addEventListener('click',set);lt.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();set();}});})();
+(function(){
+ var EX=document.getElementById('exToggle');
+ try{if(localStorage.getItem('kg-explain')!=='off')document.documentElement.classList.add('explain');}catch(e){}
+ function setEx(){var on=document.documentElement.classList.toggle('explain');if(!on)hide();try{localStorage.setItem('kg-explain',on?'on':'off');}catch(e){}}
+ if(EX){EX.addEventListener('click',setEx);EX.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setEx();}});}
+ var NAV={overview:"The home dashboard — how complete the knowledge base is, and how ready your agents are to use it.",ingest:"Turn the institution's documents into governed facts: upload a file and confirm what the system pulls out.",explorer:"Browse the knowledge as a map of connected items, to see what's richly described and what's thin.",gaps:"What's missing — and exactly which agents can't run yet because of it.",ask:"See a real question answered with vs. without the knowledge graph — the payoff of all this setup.",provenance:"Where every fact came from, and whether it was still current when an agent used it.",signoff:"Where people approve facts. Only approved facts are allowed to serve agents.",sync:"Keeps facts up to date when source documents change, and flags anything that has drifted out of date.",settings:"Settings for this institution's knowledge base."};
+ var TAB={hub:"Walk the graph one neighbourhood at a time, starting from any item.",matrix:"A grid showing how well each area of the knowledge base is filled in.",trace:"A step-by-step view of how the agent walked the graph to reach an answer."};
+ var KPI={"total nodes":"Every distinct fact or item the knowledge base holds.","relationships":"Links between items — how the knowledge is wired together.","fi-attested":"Share of facts a person at the institution has formally approved. Until approved, facts don't serve to agents.","open gaps":"Facts still missing or unconfirmed that need attention.","reg packs":"Pre-built bundles of regulatory rules the graph can apply for a product or jurisdiction."};
+ var KINDL={"institution":"The credit union itself.","product":"Something the institution offers — e.g. a checking or savings account.","feature":"A characteristic of a product, like a rate or a limit.","pricing":"What a product costs — fees, rates, charges.","disclosure":"Required legal text the institution must show for a product.","doc req":"A document the customer is required to provide.","policy":"An internal rule the institution sets for itself.","rule":"A condition that decides an outcome automatically.","authority":"The regulator or body whose rules apply.","consent":"A permission the customer has given.","offer":"A specific deal or promotion.","segment":"A group of customers with something in common.","channel":"A way the institution is reached — branch, app, web.","obligation":"Something the institution is required to do.","source":"The original document a fact was taken from."};
+ var BTN=[["integrity audit","Scans every fact for anything missing, expired, or contradictory, and lists what a person needs to look at."],["begin attestation","Goes to the sign-off queue, where a person approves facts before any agent is allowed to use them."],["send","Sends each unconfirmed item to the staff member responsible for it, so they can fill in the missing detail."],["add source","Upload a document — a rate sheet, policy, or disclosure. The system reads it and proposes facts for you to confirm; you approve, you don't type them in."],["route all to owners","Assigns every open gap to whoever owns that area, so nothing is left unaddressed."],["examiner package","Bundles the source and full history of every fact into a report you could hand to an auditor or regulator."],["bulk attest","Approves all the deposit-product facts in one step, instead of signing off each one individually."],["re-sync","Re-reads the original documents and updates anything that changed — once — so every agent stays current."],["run","Runs the question and shows the answer both with and without the knowledge graph, so you can see the difference grounding makes."],["center on this node","Re-centers the map on this item so you can explore what it connects to."],["back","Returns to the previous item you were exploring."]];
+ var TERMS={"NEEDS_FI":"‘Needs the institution to confirm.’ The system has a value, but a person must verify it before agents can rely on it.","default-unconfirmed":"A starting value the system assumed — not yet checked by a person.","DRAFT":"This version of the graph hasn't been approved yet — it's being prepared and reviewed before it goes live to agents."};
+ function norm(s){return (s||'').replace(/[→▶＋]/g,' ').replace(/\s+/g,' ').trim().toLowerCase();}
+ function tipFor(el){
+  if(el.matches('a[data-view]'))return NAV[el.dataset.view];
+  if(el.matches('[data-tab]'))return TAB[el.dataset.tab];
+  if(el.matches('.kfc,[data-k]')){var kk=el.textContent.replace(/[^a-zA-Z ]/g,' ').replace(/\s+/g,' ').trim().toLowerCase();return KINDL[kk];}
+  if(el.matches('.pill.draft'))return TERMS.DRAFT;
+  if(el.matches('.kpi .lab'))return KPI[norm(el.textContent)];
+  if(el.matches('button,.cta,a[data-go]')){var t=norm(el.textContent);for(var i=0;i<BTN.length;i++){if(t.indexOf(BTN[i][0])>=0)return BTN[i][1];}}
+  if(el.children.length===0){var lf=(el.textContent||'').trim();if(TERMS[lf])return TERMS[lf];}
+  return null;
+ }
+ var box=null,ht=null;
+ function ensure(){if(!box){box=document.createElement('div');box.className='tipbox';document.body.appendChild(box);}return box;}
+ function hide(){if(box){box.classList.remove('on');ht=setTimeout(function(){if(box)box.style.display='none';},150);}}
+ function show(el){
+  if(!document.documentElement.classList.contains('explain'))return;
+  var tip=tipFor(el);if(!tip)return;
+  clearTimeout(ht);var b=ensure();b.textContent=tip;b.style.display='block';
+  var r=el.getBoundingClientRect(),bw=b.offsetWidth,bh=b.offsetHeight;
+  var top=r.top-bh-10;if(top<8)top=r.bottom+10;
+  var left=r.left+r.width/2-bw/2;left=Math.max(10,Math.min(left,window.innerWidth-bw-10));
+  b.style.left=left+'px';b.style.top=top+'px';
+  requestAnimationFrame(function(){b.classList.add('on');});
+ }
+ var SEL='button,.cta,a[data-view],a[data-go],[data-tab],.kfc,[data-k],.pill.draft,.kpi .lab,span,b,td,.v,.dk';
+ document.addEventListener('mouseover',function(e){var el=e.target.closest(SEL);if(el)show(el);});
+ document.addEventListener('mouseout',function(e){var el=e.target.closest(SEL);if(el)hide();});
+})();
 
 // --- explorer tabs ---
 (function(){

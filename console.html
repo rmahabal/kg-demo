@@ -983,7 +983,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
    +'.gf-chip:hover{border-color:var(--green)}.gf-chip.on{background:var(--green);color:#fff;border-color:var(--green)}'
    +'#view-gaps .a-item{cursor:pointer}#view-gaps .a-item:hover{background:var(--surface-2)}'
    +'#view-gaps .kpi:last-child{cursor:pointer}#view-gaps .kpi:last-child:hover{border-color:var(--green)}'
-   +'.ov-clk{cursor:pointer;transition:.15s}#view-overview .kpi.ov-clk:hover{border-color:var(--green)}#view-overview .bg-row.ov-clk{border-radius:8px;padding:4px 6px;margin:2px -6px}#view-overview .bg-row.ov-clk:hover{background:var(--surface-2)}';
+   +'.ov-clk{cursor:pointer;transition:.15s}#view-overview .kpi.ov-clk:hover{border-color:var(--green)}#view-overview .bg-row.ov-clk{border-radius:8px;padding:4px 6px;margin:2px -6px}#view-overview .bg-row.ov-clk:hover{background:var(--surface-2)}#view-explorer .mx tbody .cell{cursor:pointer}#view-explorer .mx tbody .cell:hover{outline:2px solid var(--green);outline-offset:-2px;border-radius:4px}';
   var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
   function goView(v){var a=$('a[data-view="'+v+'"]');if(a)a.click();}
   function wireBtns(){
@@ -1059,7 +1059,15 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
     var dest={'total nodes':'explorer','relationships':'explorer','fi-attested':'signoff','open gaps':'gaps'};
     $all('.kpis .kpi',v).forEach(function(k){var lab=k.querySelector('.lab')?k.querySelector('.lab').textContent.trim().toLowerCase():'';if(dest[lab]){k.classList.add('ov-clk');k.addEventListener('click',function(){goView(dest[lab]);});}});
   }
-  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}}
+  function matrix(){
+    var tbl=$('#view-explorer .mx');if(!tbl)return;
+    var cols=$all('thead .colh',tbl).map(function(th){return th.textContent.trim();});
+    $all('tbody .cell',tbl).forEach(function(cell){cell.addEventListener('click',function(){var row=cell.closest('tr');var prod=row&&row.querySelector('.rowh')?row.querySelector('.rowh').textContent.trim():'';var td=cell.closest('td');var idx=[].indexOf.call(td.parentNode.children,td);var dim=cols[idx-1]||'';var status=cell.getAttribute('title')||'present';toast(prod+' · '+dim+' — '+status);});});
+  }
+  function signoffLineage(){
+    $all('#view-signoff .js-row .qact').forEach(function(act){if(act.__lin)return;act.__lin=1;var a=document.createElement('span');a.className='btn-sm';a.textContent='Lineage';a.style.cursor='pointer';a.title='View this fact’s provenance trace';a.addEventListener('click',function(){goView('provenance');});act.insertBefore(a,act.firstChild);});
+  }
+  function init(){try{wireBtns();}catch(e){}try{wireExtra();}catch(e){}try{overview();}catch(e){}try{provenance();}catch(e){}try{gaps();}catch(e){}try{matrix();}catch(e){}try{signoffLineage();}catch(e){}}
   if(document.readyState!=='loading')init();else document.addEventListener('DOMContentLoaded',init);
 })();
 </script>

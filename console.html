@@ -318,6 +318,8 @@ html.dark .empty .ei{color:var(--green)}
 .kfc{font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;border:1px solid var(--border);background:var(--surface2);color:var(--slate);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
 .kfc .d{width:8px;height:8px;border-radius:2px}
 .kfc.off{opacity:.4;text-decoration:line-through}
+.kfc.spot{border-color:var(--green);background:rgba(22,163,74,.12);color:var(--ink)}
+.kfc.spot .d{box-shadow:0 0 0 2px rgba(22,163,74,.25)}
 #graphhost svg{width:100%;height:auto;display:block}
 #graphhost .edge{stroke:var(--edge,#c2ccc7);stroke-width:1.5;fill:none}
 #graphhost .elab{font-size:9px;fill:var(--faint);font-weight:700;text-anchor:middle;font-family:Mulish}
@@ -826,7 +828,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
  var ADJ={};
  G.edges.forEach(function(e){(ADJ[e[0]]=ADJ[e[0]]||[]).push({id:e[1],rel:e[2]});(ADJ[e[1]]=ADJ[e[1]]||[]).push({id:e[0],rel:e[2]});});
  function deg(id){return (ADJ[id]||[]).length;}
- var center='INST:ccu',crumbs=[],hidden={},W=860,H=560,cx=W/2,cy=H/2;
+ var center='INST:ccu',crumbs=[],hidden={},spot={},W=860,H=560,cx=W/2,cy=H/2;
  var host=document.getElementById('graphhost'); if(!host)return;
  function neigh(id){var seen={},out=[];(ADJ[id]||[]).forEach(function(e){if(seen[e.id])return;seen[e.id]=1;var nd=G.nodes[e.id];if(!nd||hidden[nd.k])return;out.push({node:nd,rel:e.rel});});return out;}
  function buildRing(id){var ns=neigh(id),byk={};ns.forEach(function(x){(byk[x.node.k]=byk[x.node.k]||[]).push(x);});var ring=[];Object.keys(byk).forEach(function(k){var g=byk[k];if(g.length<=4)g.forEach(function(x){ring.push({type:'node',node:x.node,rel:x.rel});});else ring.push({type:'cluster',k:k,members:g,rel:g[0].rel});});return {ring:ring,total:ns.length};}
@@ -834,8 +836,8 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
  function trim(s,n){s=s+'';return s.length<=n?s:s.slice(0,n-1)+'\u2026';}
  function gnode(x,y,nd,cls,i){var col=KCOLOR[nd.k]||'var(--muted)',r=cls==='center'?40:25;
   var nfr=nd.nf?'<circle cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" r="'+(r+4)+'" class="nf-ring"/>':'';
-  return '<g class="gnode '+cls+'" data-id="'+nd.id+'"'+(i!=null?' data-i="'+i+'"':'')+'>'+nfr+'<circle cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" r="'+r+'" style="stroke:'+col+'"/><text class="nl" x="'+x.toFixed(0)+'" y="'+(y-(cls==='center'?2:4)).toFixed(0)+'" style="fill:'+col+'">'+esc(KLABEL[nd.k])+'</text><text class="ns" x="'+x.toFixed(0)+'" y="'+(y+(cls==='center'?13:10)).toFixed(0)+'">'+esc(trim(nd.name,cls==='center'?18:14))+'</text></g>';}
- function gcluster(x,y,it,i){var col=KCOLOR[it.k]||'var(--muted)';return '<g class="gnode cluster" data-i="'+i+'"><circle cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" r="33" style="stroke:'+col+'"/><text class="nl" x="'+x.toFixed(0)+'" y="'+(y-6).toFixed(0)+'" style="fill:'+col+'">'+esc(KLABEL[it.k])+'</text><text class="cx" x="'+x.toFixed(0)+'" y="'+(y+13).toFixed(0)+'">\u00d7'+it.members.length+'</text></g>';}
+  return '<g class="gnode '+cls+'" data-id="'+nd.id+'" data-k="'+nd.k+'"'+(i!=null?' data-i="'+i+'"':'')+'>'+nfr+'<circle cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" r="'+r+'" style="stroke:'+col+'"/><text class="nl" x="'+x.toFixed(0)+'" y="'+(y-(cls==='center'?2:4)).toFixed(0)+'" style="fill:'+col+'">'+esc(KLABEL[nd.k])+'</text><text class="ns" x="'+x.toFixed(0)+'" y="'+(y+(cls==='center'?13:10)).toFixed(0)+'">'+esc(trim(nd.name,cls==='center'?18:14))+'</text></g>';}
+ function gcluster(x,y,it,i){var col=KCOLOR[it.k]||'var(--muted)';return '<g class="gnode cluster" data-k="'+it.k+'" data-i="'+i+'"><circle cx="'+x.toFixed(0)+'" cy="'+y.toFixed(0)+'" r="33" style="stroke:'+col+'"/><text class="nl" x="'+x.toFixed(0)+'" y="'+(y-6).toFixed(0)+'" style="fill:'+col+'">'+esc(KLABEL[it.k])+'</text><text class="cx" x="'+x.toFixed(0)+'" y="'+(y+13).toFixed(0)+'">\u00d7'+it.members.length+'</text></g>';}
  function render(){var c=G.nodes[center];if(!c)return;var R=buildRing(center),ring=R.ring,N=ring.length;
   var rx=Math.min(330,150+N*12),ry=Math.min(210,100+N*9),svg='';
   for(var i=0;i<N;i++){var a=(-90+i*(360/N))*Math.PI/180,x=cx+rx*Math.cos(a),y=cy+ry*Math.sin(a);
@@ -849,7 +851,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
   host.querySelectorAll('.gnode').forEach(function(g){g.addEventListener('click',function(){
     if(g.classList.contains('cluster')){openList(ring[+g.dataset.i]);}
     else{var id=g.dataset.id;if(id===center)detail(center);else centerOn(id);}});});
-  crumbsR();detail(center);
+  crumbsR();detail(center);applySpot();
  }
  function centerOn(id){if(id===center)return;crumbs.push(center);center=id;render();}
  window.__hubCenter=function(id){if(G.nodes[id])centerOn(id);};
@@ -867,7 +869,8 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
  var order=['inst','prod','feat','price','disc','doc','pol','rule','auth','cons','offer','seg','chan','oblig','src'];
  var fel=document.getElementById('hub-filters');
  fel.innerHTML=order.filter(function(k){return counts[k];}).map(function(k){return '<span class="kfc" data-k="'+k+'"><span class="d" style="background:'+KCOLOR[k]+'"></span>'+KLABEL[k]+'</span>';}).join('');
- fel.querySelectorAll('.kfc').forEach(function(f){f.addEventListener('click',function(){var k=f.dataset.k;hidden[k]=!hidden[k];f.classList.toggle('off',hidden[k]);render();});});
+ function applySpot(){var host2=document.getElementById('graphhost');if(!host2)return;var any=Object.keys(spot).some(function(k){return spot[k];});host2.querySelectorAll('.gnode').forEach(function(g){g.classList.remove('lit','dim');if(!any||g.classList.contains('center'))return;if(spot[g.getAttribute('data-k')])g.classList.add('lit');else g.classList.add('dim');});}
+ fel.querySelectorAll('.kfc').forEach(function(f){f.addEventListener('click',function(){var k=f.dataset.k;spot[k]=!spot[k];f.classList.toggle('spot',spot[k]);applySpot();});});
  // search
  var dl=document.getElementById('hub-nodelist');
  dl.innerHTML=Object.keys(G.nodes).map(function(id){return '<option value="'+esc(G.nodes[id].name)+'::'+id+'">';}).join('');

@@ -332,6 +332,11 @@ html.dark .empty .ei{color:var(--green)}
 #graphhost .cluster circle{stroke-dasharray:5 4}
 #graphhost .cluster .cx{font-size:13px;font-weight:900;fill:var(--slate)}
 #graphhost .nf-ring{fill:none;stroke:var(--amber);stroke-width:2;stroke-dasharray:3 3}
+#graphhost .gnode{transition:opacity .18s}
+#graphhost .gnode.dim{opacity:.12}
+#graphhost.spot-on .edge,#graphhost.spot-on .elab{opacity:.14;transition:opacity .18s}
+#graphhost .gnode.lit circle{stroke-width:4;filter:drop-shadow(0 0 11px rgba(22,163,74,.55))}
+#graphhost .gnode.lit .nl{font-weight:900}
 .mlist{margin-top:8px;display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto}
 .mrow{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--border-2);border-radius:7px;background:var(--surface-2);cursor:pointer;font-size:12px;font-weight:600}
 .mrow:hover{border-color:var(--teal)}.mrow .md{width:8px;height:8px;border-radius:2px;flex:none}
@@ -869,7 +874,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
  var order=['inst','prod','feat','price','disc','doc','pol','rule','auth','cons','offer','seg','chan','oblig','src'];
  var fel=document.getElementById('hub-filters');
  fel.innerHTML=order.filter(function(k){return counts[k];}).map(function(k){return '<span class="kfc" data-k="'+k+'"><span class="d" style="background:'+KCOLOR[k]+'"></span>'+KLABEL[k]+'</span>';}).join('');
- function applySpot(){var host2=document.getElementById('graphhost');if(!host2)return;var any=Object.keys(spot).some(function(k){return spot[k];});host2.querySelectorAll('.gnode').forEach(function(g){g.classList.remove('lit','dim');if(!any||g.classList.contains('center'))return;if(spot[g.getAttribute('data-k')])g.classList.add('lit');else g.classList.add('dim');});}
+ function applySpot(){var host2=document.getElementById('graphhost');if(!host2)return;var any=Object.keys(spot).some(function(k){return spot[k];});host2.classList.toggle('spot-on',any);host2.querySelectorAll('.gnode').forEach(function(g){g.classList.remove('lit','dim');if(!any||g.classList.contains('center'))return;if(spot[g.getAttribute('data-k')])g.classList.add('lit');else g.classList.add('dim');});}
  fel.querySelectorAll('.kfc').forEach(function(f){f.addEventListener('click',function(){var k=f.dataset.k;spot[k]=!spot[k];f.classList.toggle('spot',spot[k]);applySpot();});});
  // search
  var dl=document.getElementById('hub-nodelist');

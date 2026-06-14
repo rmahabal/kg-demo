@@ -1015,7 +1015,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
     var head=$('.sec-h',view);
     if(head){
       var bar=document.createElement('span');bar.className='bt-bar';
-      bar.innerHTML='Agent read graph: <span class="bt-seg"><button data-v="11">v1.1</button><button data-v="12" class="on">v1.2</button></span>';
+      bar.innerHTML='Agent read graph: <span class="bt-seg"><button data-v="11">v1.1</button><button data-v="12" class="on">v1.2</button></span> <span style="opacity:.6;font-style:italic">illustrative</span>';
       head.appendChild(bar);
       var ext=cns[1]?cns[1].querySelector('.cv'):null,nodev=cns[2]?cns[2].querySelector('.cv'):null,asof=null;
       $all('.kv .i',view).forEach(function(i){if(i.querySelector('.l')&&i.querySelector('.l').textContent==='As-of (graph version)')asof=i.querySelector('.v');});
@@ -1023,7 +1023,7 @@ document.getElementById('theme').addEventListener('click',function(){var d=docum
       var note=$('.note',view);if(note)note.parentNode.insertBefore(cap,note);
       function setV(v){
         bar.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b.dataset.v===v);});
-        if(v==='11'){if(ext)ext.textContent='"0.03% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.7';if(asof)asof.textContent='v1.1 · 2026-05-20';cap.style.display='block';cap.innerHTML='<b>On v1.1</b> the agent would have quoted <b>0.03%</b>. The 0.05% rate took effect 02 Mar 2026 but was not ratified into the graph until v1.2 — bitemporal tracking is what makes “which rate did the agent quote, and was it current?” answerable.';}
+        if(v==='11'){if(ext)ext.textContent='"0.03% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.7';if(asof)asof.textContent='v1.1 · 2026-05-20';cap.style.display='block';cap.innerHTML='<b>Illustrative example</b> (sample figures, not from this instance). On v1.1 the agent would have quoted <b>0.03%</b>. The 0.05% rate took effect 02 Mar 2026 but was not ratified into the graph until v1.2 — bitemporal tracking is what makes “which rate did the agent quote, and was it current?” answerable.';}
         else{if(ext)ext.textContent='"0.05% APY $100+"';if(nodev)nodev.textContent='Pricing · v0.9';if(asof)asof.textContent='v1.2 · 2026-06-12';cap.style.display='none';}
       }
       bar.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){setV(b.dataset.v);});});
